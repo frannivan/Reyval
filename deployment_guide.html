@@ -1,0 +1,603 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Guía de Despliegue Multi-App (Oracle Cloud)</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #f4f6f9;
+            color: #333;
+            line-height: 1.6;
+            margin: 0;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 900px;
+            margin: 0 auto;
+            background: white;
+            padding: 40px;
+            border-radius: 8px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+
+        h1 {
+            color: #2c3e50;
+            border-bottom: 2px solid #3498db;
+            padding-bottom: 10px;
+        }
+
+        h2 {
+            color: #2980b9;
+            margin-top: 30px;
+            border-bottom: 1px solid #ecf0f1;
+            padding-bottom: 5px;
+        }
+
+        h3 {
+            color: #16a085;
+            margin-top: 25px;
+        }
+
+        code,
+        pre {
+            background-color: #2d3436;
+            color: #dfe6e9;
+            padding: 4px 6px;
+            border-radius: 4px;
+            font-family: 'Consolas', 'Monaco', monospace;
+            font-size: 0.9em;
+        }
+
+        pre {
+            padding: 15px;
+            overflow-x: auto;
+            border-left: 5px solid #3498db;
+            white-space: pre-wrap;
+        }
+
+        .step {
+            margin-bottom: 20px;
+            padding: 15px;
+            background: #fafafa;
+            border: 1px solid #eee;
+            border-radius: 5px;
+        }
+
+        .warning {
+            background-color: #ffeaa7;
+            color: #d35400;
+            padding: 15px;
+            border-left: 5px solid #e17055;
+            margin: 20px 0;
+        }
+
+        .tip {
+            background-color: #d1f2eb;
+            color: #0e6655;
+            padding: 15px;
+            border-left: 5px solid #1abc9c;
+            margin: 20px 0;
+        }
+
+        .cmd-label {
+            display: block;
+            font-weight: bold;
+            margin-bottom: 5px;
+            color: #555;
+            margin-top: 15px;
+        }
+
+        .keyboard-key {
+            background: #eee;
+            border: 1px solid #ccc;
+            border-radius: 3px;
+            padding: 2px 6px;
+            font-family: monospace;
+            font-weight: bold;
+            font-size: 0.9em;
+            color: #333;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container">
+        <h1>Guía Maestra de Despliegue: Oracle Cloud</h1>
+
+        <div class="warning">
+            <strong>⚠️ IMPORTANTE: Límite de Memoria RAM</strong><br>
+            Tu servidor gratuito tiene solo ~1GB de RAM. Solo puedes tener <strong>2 aplicaciones activas</strong> al
+            mismo tiempo. Sigue la sección final "Cómo Alternar Apps" para gestionar esto.
+        </div>
+
+        <p>Esta guía cubre:
+        <ol>
+            <li>Subir los archivos ejecutables (Ya realizado automáticamente).</li>
+            <li>(Opcional) Descargar el código fuente con Git.</li>
+            <li><strong>CÓMO EDITAR ARCHIVOS</strong> en el servidor (Tutorial paso a paso).</li>
+            <li>Configura Nginx para usar subdirectorios (/abtech, /reyval, etc).</li>
+        </ol>
+        </p>
+
+        <hr>
+
+        <h2>1. Estado Actual (Lo que ya hicimos)</h2>
+        <div class="tip">
+            ✅ <strong>Ya se subieron los archivos compilados (.jar y frontend dist)</strong> desde tu Mac al servidor
+            usando <code>scp</code>. Esto significa que las apps <em>ya están listas para arrancar</em>, no necesitas
+            compilar nada en el servidor.
+        </div>
+
+        <h2>2. (Opcional) Descargar el Código con Git</h2>
+        <p>Si quieres tener el código fuente en el servidor (solo para referencia, no para ejecutar), sigue estos pasos:
+        </p>
+        <pre># 1. Ve a tu carpeta home
+cd ~
+
+# 2. Clona los repositorios (te pedirá usuario y token de GitHub)
+git clone https://github.com/frannivan/AbThecUAT.git abtech
+git clone https://github.com/frannivan/reyval.git reyval
+git clone https://github.com/frannivan/LaCanchita.git lacanchita
+git clone https://github.com/frannivan/LoteMaster.git lotemaster
+
+# Si ya existen y quieres actualizarlos:
+cd abtech
+git pull origin main</pre>
+
+        <h2>3. TUTORIAL: Cómo crear y editar archivos (Nano) 📝</h2>
+        <p>En el servidor no tienes ratón. Usaremos el editor <strong>Nano</strong>. Aquí tienes los "Superpoderes" que
+            necesitas memorizar:</p>
+
+        <div class="step">
+            <p><strong>Para ABRIR o CREAR un archivo:</strong></p>
+            <code>sudo nano /ruta/del/archivo</code>
+
+            <p><strong>UNA VEZ DENTRO:</strong></p>
+            <ul>
+                <li>Usa las <span class="keyboard-key">Flechas</span> para moverte.</li>
+                <li>Copia el texto desde tu Mac (<span class="keyboard-key">Cmd</span>+<span
+                        class="keyboard-key">C</span>) y pégalo en la terminal (<span
+                        class="keyboard-key">Cmd</span>+<span class="keyboard-key">V</span>).</li>
+            </ul>
+
+            <p><strong>PARA GUARDAR Y SALIR (¡Vital!):</strong></p>
+            <ol>
+                <li>Presiona <span class="keyboard-key">Ctrl</span> + <span class="keyboard-key">O</span> (letra O)
+                    &rarr; <em>Esto significa "WriteOut" (Guardar)</em>.</li>
+                <li>Presiona <span class="keyboard-key">Enter</span> &rarr; <em>Para confirmar el nombre del
+                        archivo</em>.</li>
+                <li>Presiona <span class="keyboard-key">Ctrl</span> + <span class="keyboard-key">X</span> &rarr;
+                    <em>Para salir del editor</em>.
+                </li>
+            </ol>
+        </div>
+
+        <h2>4. Configuración del Servicio (Systemd)</h2>
+        <p>Cada aplicación necesita un archivo de "servicio" para funcionar en segundo plano.</p>
+
+        <h3>Ejemplo para AbTech (Repetir para cada app)</h3>
+
+        <p class="cmd-label">1. Crea el archivo de servicio:</p>
+        <pre>sudo nano /etc/systemd/system/abtech.service</pre>
+
+        <p class="cmd-label">2. Pega este contenido (ajusta los puertos según la lista de abajo):</p>
+        <pre>[Unit]
+Description=Backend AbTech
+After=syslog.target
+
+[Service]
+User=ubuntu
+# IMPORTANTE: Cambia el puerto aquí si es necesario (-Dserver.port)
+ExecStart=/usr/bin/java -Dserver.port=8082 -jar /opt/abtech/app.jar
+WorkingDirectory=/opt/abtech
+SuccessExitStatus=143
+Restart=always
+RestartSec=5
+
+[Install]
+WantedBy=multi-user.target</pre>
+
+        <p class="cmd-label">3. Guarda y Sal:</p>
+        <p>Usa <span class="keyboard-key">Ctrl+O</span>, <span class="keyboard-key">Enter</span>, <span
+                class="keyboard-key">Ctrl+X</span>.</p>
+
+        <div class="tip">
+            <ul>
+                <li><strong>BarberShop:</strong> Puerto <strong>8080</strong> (Usa <code>-Dserver.port=8080</code>)</li>
+                <li><strong>Amulets:</strong> Puerto <strong>8081</strong> (Usa <code>-Dserver.port=8081</code>)</li>
+                <li><strong>AbTech:</strong> Puerto <strong>8082</strong> (Usa <code>-Dserver.port=8082</code>)</li>
+                <li><strong>Reyval:</strong> Puerto <strong>8083</strong> (Usa <code>-Dserver.port=8083</code>)</li>
+                <li><strong>LaCanchita:</strong> Puerto <strong>8084</strong> (Usa <code>-Dserver.port=8084</code>)</li>
+                <li><strong>LoteMaster:</strong> Puerto <strong>8085</strong> (Usa <code>-Dserver.port=8085</code>)</li>
+            </ul>
+        </div>
+
+        <p class="cmd-label">4. Recarga Systemd (para que reconozca los nuevos archivos):</p>
+        <pre>sudo systemctl daemon-reload</pre>
+
+        <h3>Archivos de Servicio para Otras Apps (Copiar y pegar)</h3>
+
+        <p><strong>Para LaCanchita (/etc/systemd/system/lacanchita.service):</strong></p>
+        <pre>[Unit]
+Description=Backend LaCanchita
+After=syslog.target
+
+[Service]
+User=ubuntu
+ExecStart=/usr/bin/java -Dserver.port=8084 -jar /var/www/lacanchita/backend.jar
+WorkingDirectory=/var/www/lacanchita
+SuccessExitStatus=143
+Restart=always
+RestartSec=5
+
+[Install]
+WantedBy=multi-user.target</pre>
+
+        <p><strong>Para AbTech (/etc/systemd/system/abtech.service):</strong></p>
+        <pre>[Unit]
+Description=Backend AbTech
+After=syslog.target
+
+[Service]
+User=ubuntu
+ExecStart=/usr/bin/java -Dserver.port=8082 -jar /opt/abtech/app.jar
+WorkingDirectory=/opt/abtech
+SuccessExitStatus=143
+Restart=always
+RestartSec=5
+
+[Install]
+WantedBy=multi-user.target</pre>
+        <hr>
+
+        <h2>5. Configuración Nginx (Conectar Internet -> App)</h2>
+        <p>Como ya tienes configuraciones existentes, simplemente vamos a agregar las nuevas Apps a tu archivo actual.
+        </p>
+
+        <p class="cmd-label">1. Abre tu configuración:</p>
+        <pre>sudo nano /etc/nginx/sites-available/default</pre>
+
+        <p class="cmd-label">2. BORRA todo el contenido (Ctrl+K repetidametne) y PEGA esta configuración completa y
+            unificada:</p>
+        <pre>server {
+    listen 80;
+    server_name _;
+
+    # 1. BARBERSHOP (Raíz)
+    location / {
+        root /var/www/barbershop;
+        try_files $uri $uri/ /index.html;
+    }
+    location /api/ {
+        proxy_pass http://localhost:8080/api/;
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+    }
+
+    # 2. AMULETS OF SIAM (/amulets)
+    location = /amulets { return 301 /amulets/; }
+    location /amulets/ {
+        alias /var/www/amulets/;
+        try_files $uri $uri/ /amulets/index.html;
+    }
+    location /api/amulets/ {
+        proxy_pass http://localhost:8081/api/;
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+    }
+
+    # 3. ABTECH (/abtech)
+    location = /abtech { return 301 /abtech/; }
+    location /abtech/ {
+        alias /var/www/abtech/;
+        try_files $uri $uri/ /abtech/index.html;
+    }
+    location /api/abtech/ {
+        # El backend tiene context-path=/abtech, así que recibe /abtech/api/...
+        # Aquí mapeamos /api/abtech/ -> /abtech/api/
+        rewrite ^/api/abtech/(.*)$ /abtech/api/$1 break;
+        proxy_pass http://localhost:8082;
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+    }
+
+    # 4. LACANCHITA (/lacanchita)
+    location = /lacanchita { return 301 /lacanchita/; }
+    location /lacanchita/ {
+        alias /var/www/lacanchita/;
+        try_files $uri $uri/ /lacanchita/index.html;
+    }
+    location /lacanchita/api/ {
+        # El frontend llama /lacanchita/api/...
+        # El backend escucha en /lacanchita/api/...
+        proxy_pass http://localhost:8083/lacanchita/api/;
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+    }
+
+    # 5. CASAVIDA (/reyval)
+    location = /reyval { return 301 /reyval/; }
+    location /reyval/ {
+        alias /var/www/reyval/;
+        try_files $uri $uri/ /reyval/index.html;
+    }
+    location /api/reyval/ {
+        # Backend Reyval (8084) por defecto escucha en /api/reyval/ ?? 
+        # Ojo: No pusimos context-path en Reyval.properties, solo cambiamos puerto.
+        # Si Reyval Controller es @RequestMapping("/api/reyval"), entonces ok.
+        proxy_pass http://localhost:8084/api/reyval/; 
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+    }
+
+    # 6. LOTEMASTER (/lotemaster)
+    location = /lotemaster { return 301 /lotemaster/; }
+    location /lotemaster/ {
+        alias /var/www/lotemaster/;
+        try_files $uri $uri/ /lotemaster/index.html;
+    }
+    location /api/lotemaster/ {
+        proxy_pass http://localhost:8085/api/;
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+    }
+}</pre>
+
+        <p class="cmd-label">3. Verifica y Reinicia Nginx:</p>
+        <pre>sudo nginx -t   # (Debe decir "syntax is ok")
+sudo systemctl restart nginx</pre>
+
+        <div class="tip">
+            <strong>⚠️ NOTA SOBRE ANGULAR:</strong> Para que las apps funcionen en subdirectorios (ej:
+            <code>misitio.com/reyval</code>), el archivo <code>index.html</code> de Angular debe tener
+            <code>&lt;base href="/reyval/"&gt;</code>. Si ves la pantalla en blanco, es posible que debamos ajustar
+            ese detalle en el build.
+        </div>
+
+        <h2>6. Cómo Alternar Apps (Gestión de RAM) 🧠</h2>
+        <p>Recuerda la regla de oro: <strong>Máximo 2 apps encendidas.</strong></p>
+
+        <h3>Comandos para Controlar Apps (Backend)</h3>
+        <div class="tip">
+            <strong>Concepto Clave:</strong><br>
+            - <strong>Frontend (Web):</strong> No se "apaga". Son archivos estáticos en Nginx (como imágenes) y
+            <strong>no consumen RAM</strong>. Siempre están visibles.<br>
+            - <strong>Backend (Java):</strong> Es el motor que procesa datos. Este <strong>SÍ consume RAM</strong>
+            (~300MB c/u).<br>
+            <br>
+            <em>Para "apagar" una app y ahorrar memoria, solo necesitas detener el servicio del Backend.</em>
+        </div>
+
+        <table class="summary-table">
+            <thead>
+                <tr>
+                    <th>App</th>
+                    <th>Encender (Start)</th>
+                    <th>Apagar (Stop)</th>
+                    <th>Ver Estado</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td><strong>BarberShop</strong></td>
+                    <td><code>sudo systemctl start barbershop</code></td>
+                    <td><code>sudo systemctl stop barbershop</code></td>
+                    <td><code>sudo systemctl status barbershop</code></td>
+                </tr>
+                <tr>
+                    <td><strong>Amulets</strong></td>
+                    <td><code>sudo systemctl start amulets</code></td>
+                    <td><code>sudo systemctl stop amulets</code></td>
+                    <td><code>sudo systemctl status amulets</code></td>
+                </tr>
+                <tr>
+                    <td><strong>AbTech</strong></td>
+                    <td><code>sudo systemctl start abtech</code></td>
+                    <td><code>sudo systemctl stop abtech</code></td>
+                    <td><code>sudo systemctl status abtech</code></td>
+                </tr>
+                <tr>
+                    <td><strong>Reyval</strong></td>
+                    <td><code>sudo systemctl start reyval</code></td>
+                    <td><code>sudo systemctl stop reyval</code></td>
+                    <td><code>sudo systemctl status reyval</code></td>
+                </tr>
+                <tr>
+                    <td><strong>LaCanchita</strong></td>
+                    <td><code>sudo systemctl start lacanchita</code></td>
+                    <td><code>sudo systemctl stop lacanchita</code></td>
+                    <td><code>sudo systemctl status lacanchita</code></td>
+                </tr>
+                <tr>
+                    <td><strong>LoteMaster</strong></td>
+                    <td><code>sudo systemctl start lotemaster</code></td>
+                    <td><code>sudo systemctl stop lotemaster</code></td>
+                    <td><code>sudo systemctl status lotemaster</code></td>
+                </tr>
+            </tbody>
+        </table>
+
+        <h3>Ejemplo: Cambiar de Apps activas</h3>
+        <pre># 1. Liberar memoria (Apagar todo lo que no uses)
+sudo systemctl stop barbershop amulets abtech reyval lacanchita lotemaster
+
+# 2. Encender solo las 2 que necesitas (Ej: Reyval y LoteMaster)
+sudo systemctl start reyval lotemaster
+
+# 3. Validar que arrancaron
+check-apps</pre>
+
+        <h2>8. ACTUALIZACIONES (Cómo subir cambios nuevos) 🚀</h2>
+        <p>Cuando hagas cambios en el código en tu Mac y quieras verlos en el servidor, sigue estos pasos:</p>
+
+        <h3>A) Actualizar el FRONTEND (Diseño/UI)</h3>
+        <div class="step">
+            <p class="cmd-label">1. En tu Mac (Carpeta <code>frontend</code>):</p>
+            <pre># Generar la versión de producción
+npm run build
+
+# Empaquetar
+tar -czvf reyval-ui.tar.gz dist/browser</pre>
+
+            <p class="cmd-label">2. Subir al servidor:</p>
+            <pre>scp -i /Users/franivan/Documents/ProyectosWeb/AbTech/ssh-key-2026-01-09.key /Users/franivan/Documents/ProyectosWeb/Reyval/frontend/reyval-ui.tar.gz ubuntu@143.47.101.209:/tmp</pre>
+
+            <p class="cmd-label">3. En el Servidor (SSH):</p>
+            <pre># Limpiar carpeta actual
+sudo rm -rf /var/www/reyval/*
+
+# Descomprimir nuevos archivos (Ruta absoluta del archivo subido)
+sudo tar -xzvf /tmp/reyval-ui.tar.gz -C /var/www/reyval --strip-components 2
+
+# Permisos (opcional pero recomendado)
+sudo chown -R www-data:www-data /var/www/reyval</pre>
+        </div>
+
+        <h3>B) Actualizar el BACKEND (Lógica/Java)</h3>
+        <div class="step">
+            <p class="cmd-label">1. En tu Mac (Carpeta <code>backend</code>):</p>
+            <pre># Generar el archivo JAR
+mvn clean package -DskipTests</pre>
+
+            <p class="cmd-label">2. Subir al servidor:</p>
+            <pre>scp -i /Users/franivan/Documents/ProyectosWeb/AbTech/ssh-key-2026-01-09.key target/*.jar ubuntu@143.47.101.209:/tmp/reyval.jar</pre>
+
+            <p class="cmd-label">3. En el Servidor (SSH):</p>
+            <pre># Mover a la carpeta final (Sobrescribir el anterior)
+sudo mv /tmp/reyval.jar /var/www/reyval/backend.jar
+
+# Reiniciar el servicio para que use el nuevo código
+sudo systemctl restart reyval</pre>
+        </div>
+
+        <hr>
+
+        <h2>9. Troubleshooting / Solución de Problemas 🔧</h2>
+
+        <p class="cmd-label">Ver qué procesos Java están consumiendo memoria:</p>
+        <pre>ps -ef | grep java</pre>
+
+        <p class="cmd-label">Ver si los puertos 808x están escuchando:</p>
+        <pre>sudo netstat -tulpn | grep java</pre>
+
+        <p class="cmd-label">Ver contenedores Docker rebeldes (si usaste Docker alguna vez):</p>
+        <pre>sudo docker ps</pre>
+        <pre>sudo docker stop [ID]</pre>
+
+        <h2>7. Resumen de Credenciales y URLs 🚀</h2>
+        <div class="tip">
+            <strong>👤 Usuario Admin Unificado:</strong><br>
+            - <strong>Email:</strong> <code>admin@test.com</code><br>
+            - <strong>Password Hash:</strong> <code>$2a$10$eAccYoNOHEqXve8aIWT8Nu3ueOA751J/t1n2/RFljLSGT2Qv7.d26</code>
+        </div>
+        <div class="tip">
+            <strong>👤 Credenciales Unificadas:</strong><br>
+            - <strong>Admin Web (Email/App):</strong> <code>admin@test.com</code> / <code>password</code><br>
+            - <strong>H2 Console (User/Pass):</strong> <code>sa</code> / <code>password</code>
+        </div>
+
+        <div class="warning">
+            <strong>⏳ Nota sobre el Arranque:</strong><br>
+            Debido a que el servidor tiene recursos limitados (1GB RAM), las 6 aplicaciones tardan entre <strong>5 y 10
+                minutos</strong> en arrancar completamente. Si ves un error "502 Bad Gateway" o "504 Gateway Timeout" al
+            abrir Swagger, por favor espera un par de minutos y refresca la página.
+        </div>
+
+        <div class="step">
+            <style>
+                .summary-table {
+                    width: 100%;
+                    border-collapse: collapse;
+                    margin-top: 10px;
+                    font-size: 0.85em;
+                }
+
+                .summary-table th,
+                .summary-table td {
+                    border: 1px solid #ddd;
+                    padding: 8px;
+                    text-align: left;
+                }
+
+                .summary-table th {
+                    background-color: #f2f2f2;
+                }
+            </style>
+            <table class="summary-table">
+                <thead>
+                    <tr>
+                        <th>Aplicación</th>
+                        <th>URL App (UI)</th>
+                        <th>H2 Console (DB)</th>
+                        <th>JDBC URL (H2)</th>
+                        <th>Swagger (API Docs)</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td><strong>BarberShop</strong></td>
+                        <td><a href="http://143.47.101.209/" target="_blank">/</a></td>
+                        <td><a href="http://143.47.101.209/h2-console/" target="_blank">/h2</a></td>
+                        <td><code>jdbc:h2:mem:siamdb</code></td>
+                        <td><a href="http://143.47.101.209/swagger-ui/index.html" target="_blank">/swagger</a></td>
+                    </tr>
+                    <tr>
+                        <td><strong>Amulets</strong></td>
+                        <td><a href="http://143.47.101.209/amulets/" target="_blank">/amulets/</a></td>
+                        <td><a href="http://143.47.101.209/amulets/h2-console/" target="_blank">/amulets/h2</a></td>
+                        <td><code>jdbc:h2:mem:siamdb</code></td>
+                        <td><a href="http://143.47.101.209/amulets/swagger-ui/index.html" target="_blank">/swagger</a>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td><strong>AbTech</strong></td>
+                        <td><a href="http://143.47.101.209/abtech/" target="_blank">/abtech/</a></td>
+                        <td><a href="http://143.47.101.209/abtech/h2-console/" target="_blank">/abtech/h2</a></td>
+                        <td><code>jdbc:h2:mem:siamdb</code></td>
+                        <td><a href="http://143.47.101.209/abtech/swagger-ui/index.html" target="_blank">/swagger</a>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td><strong>LaCanchita</strong></td>
+                        <td><a href="http://143.47.101.209/lacanchita/" target="_blank">/lacanchita/</a></td>
+                        <td><a href="http://143.47.101.209/lacanchita/h2-console/" target="_blank">/lacanchita/h2</a>
+                        </td>
+                        <td><code>jdbc:h2:mem:siamdb</code></td>
+                        <td><a href="http://143.47.101.209/lacanchita/swagger-ui/index.html"
+                                target="_blank">/swagger</a></td>
+                    </tr>
+                    <tr>
+                        <td><strong>Reyval</strong></td>
+                        <td><a href="http://143.47.101.209/reyval/" target="_blank">/reyval/</a></td>
+                        <td><a href="http://143.47.101.209/reyval/h2-console/" target="_blank">/reyval/h2</a></td>
+                        <td><code>jdbc:h2:mem:siamdb</code></td>
+                        <td><a href="http://143.47.101.209/reyval/swagger-ui/index.html" target="_blank">/swagger</a>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td><strong>LoteMaster</strong></td>
+                        <td><a href="http://143.47.101.209/lotemaster/" target="_blank">/lotemaster/</a></td>
+                        <td><a href="http://143.47.101.209/lotemaster/h2-console/" target="_blank">/lotemaster/h2</a>
+                        </td>
+                        <td><code>jdbc:h2:mem:siamdb</code></td>
+                        <td><a href="http://143.47.101.209/lotemaster/swagger-ui/index.html"
+                                target="_blank">/swagger</a></td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+
+        <div class="tip">
+            <strong>H2 Console Login:</strong><br>
+            - Use el Email y Password indicados arriba para el login de Spring Security (si se solicita).<br>
+            - Use <code>jdbc:h2:mem:...</code> o <code>jdbc:h2:file:...</code> según corresponda en el campo JDBC URL de
+            la consola H2.
+        </div>
+    </div>
+</body>
+
+</html>

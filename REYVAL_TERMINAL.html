@@ -1,0 +1,398 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Reyval Master Console v4.4 | Architect Edition</title>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;800&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        :root {
+            --primary: #8b5cf6;
+            --primary-glow: rgba(139, 92, 246, 0.4);
+            --bg: #09090b;
+            --card-bg: rgba(24, 24, 27, 0.9);
+            --text-main: #f4f4f5;
+            --text-muted: #a1a1aa;
+            --accent: #10b981;
+            --danger: #ef4444;
+            --border: rgba(255, 255, 255, 0.08);
+            --glass: rgba(255, 255, 255, 0.03);
+            --nav-bg: rgba(9, 9, 11, 0.95);
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; -webkit-font-smoothing: antialiased; }
+
+        body {
+            font-family: 'Outfit', sans-serif;
+            background-color: var(--bg);
+            color: var(--text-main);
+            background-image: 
+                radial-gradient(circle at 0% 0%, rgba(139, 92, 246, 0.1) 0%, transparent 40%),
+                radial-gradient(circle at 100% 100%, rgba(16, 185, 129, 0.05) 0%, transparent 40%);
+            padding-bottom: 5rem;
+            overflow-x: hidden;
+        }
+
+        /* NAVIGATION */
+        nav {
+            background: var(--nav-bg);
+            backdrop-filter: blur(40px);
+            border-bottom: 1px solid var(--border);
+            position: sticky;
+            top: 0;
+            z-index: 2000;
+            display: flex;
+            justify-content: center;
+            padding: 0 2rem;
+        }
+        .nav-links { display: flex; list-style: none; gap: 4rem; }
+        .nav-item {
+            padding: 1.5rem 1rem;
+            cursor: pointer;
+            color: var(--text-muted);
+            font-weight: 600;
+            transition: all 0.3s;
+            position: relative;
+            display: flex;
+            align-items: center;
+            gap: 0.8rem;
+        }
+        .nav-item:hover { color: #fff; }
+        .nav-item.active { color: var(--primary); }
+        .nav-item.active::after {
+            content: ''; position: absolute; bottom: 0; left: 0; width: 100%; height: 4px; 
+            background: var(--primary); box-shadow: 0 0 20px var(--primary-glow);
+        }
+
+        /* CONTAINERS */
+        .container { max-width: 1440px; margin: 0 auto; padding: 0 2rem; display: none; }
+        .container.active { display: block; animation: tabSwitch 0.4s cubic-bezier(0.16, 1, 0.3, 1); }
+        @keyframes tabSwitch { from { opacity: 0; transform: translateY(15px); } to { opacity: 1; transform: translateY(0); } }
+
+        /* MISSION CONTROL UI */
+        .gateway-box { 
+            background: linear-gradient(135deg, rgba(30, 27, 75, 0.4), rgba(15, 23, 42, 0.4));
+            border: 1px solid var(--primary);
+            padding: 1.5rem 2.5rem;
+            border-radius: 20px;
+            margin: 2rem 0;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            box-shadow: 0 0 30px rgba(139, 92, 246, 0.1);
+        }
+        .gateway-info h4 { color: #fff; font-size: 1.1rem; margin-bottom: 0.4rem; display: flex; align-items: center; gap: 0.8rem; }
+        .gateway-cmd { font-family: 'JetBrains Mono', monospace; background: #000; padding: 0.5rem 1.2rem; border-radius: 8px; font-size: 0.85rem; color: var(--primary); border: 1px solid #333; }
+
+        .card { background: var(--card-bg); border: 1px solid var(--border); border-radius: 24px; overflow: hidden; margin-bottom: 2rem; }
+        .card-header { padding: 1.8rem 2.5rem; display: flex; align-items: center; justify-content: space-between; cursor: pointer; transition: background 0.2s; }
+        .card-header:hover { background: rgba(255,255,255,0.02); }
+        .app-title { font-size: 1.4rem; font-weight: 800; display: flex; align-items: center; gap: 1rem; }
+        .led { width: 14px; height: 14px; border-radius: 50%; background: var(--danger); box-shadow: 0 0 15px rgba(239, 68, 68, 0.4); }
+        .led.active { background: var(--accent); box-shadow: 0 0 20px rgba(16, 185, 129, 0.7); }
+        
+        .controls { display: flex; gap: 1rem; align-items: center; }
+        .btn { padding: 0.7rem 1.4rem; border-radius: 12px; font-weight: 700; cursor: pointer; transition: all 0.2s; display: flex; align-items: center; gap: 0.6rem; border: 1px solid transparent; }
+        .btn-run { background: rgba(16, 185, 129, 0.15); color: var(--accent); border-color: rgba(16, 185, 129, 0.3); }
+        .btn-stop { background: rgba(239, 68, 68, 0.15); color: var(--danger); border-color: rgba(239, 68, 68, 0.3); }
+        .btn-run:hover:not(:disabled) { background: var(--accent); color: #000; transform: translateY(-3px); }
+        .btn-stop:hover:not(:disabled) { background: var(--danger); color: #fff; transform: translateY(-3px); }
+
+        .terminal-panel { max-height: 0; overflow: hidden; transition: max-height 0.4s; background: #000; }
+        .card.expanded .terminal-panel { max-height: 800px; }
+        .terminal-output { padding: 2rem; font-family: 'JetBrains Mono', monospace; font-size: 0.9rem; height: 400px; overflow-y: auto; color: #cbd5e1; }
+        .line { border-left: 3px solid var(--primary); padding-left: 1.2rem; margin-bottom: 0.4rem; }
+
+        /* ARCHITECTURE LAB */
+        .lab-hero { padding: 4rem 3rem; background: var(--card-bg); border-radius: 30px; border: 1px solid var(--border); margin-top: 3rem; }
+        .matrix-container { display: grid; grid-template-columns: repeat(3, 1fr); gap: 2rem; margin-top: 3rem; }
+        .matrix-box { background: var(--glass); padding: 2rem; border-radius: 20px; border: 1px solid var(--border); position: relative; }
+        .matrix-box h4 { font-size: 1.4rem; margin-bottom: 1.5rem; color: #fff; display: flex; align-items: center; gap: 0.8rem; }
+        .matrix-box i { color: var(--primary); }
+        .matrix-item { display: flex; flex-direction: column; gap: 0.5rem; margin-bottom: 1rem; }
+        .matrix-item b { color: var(--primary); font-size: 1rem; }
+        .matrix-item span { font-size: 0.85rem; color: var(--text-muted); }
+
+        .traceability-table { width: 100%; border-collapse: collapse; margin-top: 3rem; border-radius: 12px; overflow: hidden; }
+        .traceability-table th { background: #1e1b4b; text-align: left; padding: 1.2rem; font-size: 0.9rem; color: #fff; text-transform: uppercase; }
+        .traceability-table td { padding: 1.2rem; border-bottom: 1px solid var(--border); font-size: 0.9rem; vertical-align: top; }
+        .module-badge { font-weight: 800; color: #fff; }
+        .lib-tag { background: rgba(139, 92, 246, 0.1); border: 1px solid var(--primary); padding: 0.2rem 0.6rem; border-radius: 6px; font-size: 0.75rem; color: var(--primary); display: inline-block; margin: 0.2rem; }
+
+        /* DEVOPS SECTION */
+        .devops-grid { display: grid; grid-template-columns: 2fr 1fr; gap: 2rem; margin-top: 3rem; }
+        .infra-card { background: var(--glass); padding: 2.5rem; border-radius: 24px; border: 1px solid var(--border); }
+        .pipeline-step { display: flex; align-items: center; gap: 1.5rem; margin-bottom: 1.5rem; }
+        .step-icon { width: 40px; height: 40px; background: var(--primary); border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: 800; color: #fff; }
+
+        /* WARNING OVERLAY */
+        #bridge-warning { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.9); backdrop-filter: blur(15px); z-index: 9999; display: none; align-items: center; justify-content: center; text-align: center; }
+        .warning-content { background: var(--bg); border: 2px solid var(--danger); padding: 4rem; border-radius: 30px; max-width: 700px; box-shadow: 0 0 60px rgba(239, 68, 68, 0.3); }
+
+        .copy-toast { position: fixed; bottom: 3rem; right: 3rem; background: var(--primary); color: #fff; padding: 1.5rem 2.5rem; border-radius: 20px; font-weight: 900; transform: translateY(200px); transition: transform 0.4s; z-index: 10000; }
+        .copy-toast.show { transform: translateY(0); }
+    </style>
+</head>
+<body>
+
+<div id="bridge-warning">
+    <div class="warning-content">
+        <i class="fa-solid fa-cloud-slash" style="font-size: 5rem; color: var(--danger); margin-bottom: 2rem;"></i>
+        <h2 style="font-size: 2.5rem; color: #fff;">Architect Bridge Offline</h2>
+        <p style="color: var(--text-muted); margin: 2rem 0;">El motor de ejecución absoluta no se encuentra activo. Utiliza el siguiente comando maestro en cualquier terminal:</p>
+        <div class="gateway-cmd" style="font-size: 1.1rem; padding: 1.5rem; margin-bottom: 3rem;">node /Users/franivan/Documents/ProyectosWeb/Reyval/terminal-bridge.js</div>
+        <button class="btn" style="background: var(--primary); color: #fff; padding: 1.2rem 4rem; margin: 0 auto;" onclick="copyText('node /Users/franivan/Documents/ProyectosWeb/Reyval/terminal-bridge.js')">
+            <i class="fa-solid fa-copy"></i> COPIAR COMANDO ABSOLUTO
+        </button>
+    </div>
+</div>
+
+<nav>
+    <ul class="nav-links">
+        <li class="nav-item active" onclick="switchTab('control', this)"><i class="fa-solid fa-satellite-dish"></i> Mission Control</li>
+        <li class="nav-item" onclick="switchTab('architecture', this)"><i class="fa-solid fa-chess-knight"></i> Architecture Lab</li>
+        <li class="nav-item" onclick="switchTab('manual', this)"><i class="fa-solid fa-atlas"></i> Operational Manual</li>
+    </ul>
+</nav>
+
+<!-- MISSION CONTROL -->
+<div id="control" class="container active">
+    <div class="gateway-box">
+        <div class="gateway-info">
+            <h4><i class="fa-solid fa-bridge-lock" style="color: var(--primary);"></i> CONNECTIVITY GATEWAY</h4>
+            <div class="gateway-cmd">node /Users/franivan/Documents/ProyectosWeb/Reyval/terminal-bridge.js</div>
+        </div>
+        <button class="btn" style="background: #fff; color: #000;" onclick="copyText('node /Users/franivan/Documents/ProyectosWeb/Reyval/terminal-bridge.js')">
+            <i class="fa-solid fa-copy"></i> COPIAR MASTER COMMAND
+        </button>
+    </div>
+
+    <!-- FRONTEND -->
+    <div class="card" id="card-frontend">
+        <div class="card-header" onclick="toggleCard('card-frontend')">
+            <div class="app-title"><div class="led" id="led-frontend"></div> <i class="fa-brands fa-angular"></i> Reyval Frontend</div>
+            <div class="controls" onclick="event.stopPropagation()">
+                <button class="btn btn-run" onclick="sendCommand('run', 'frontend')" id="run-frontend"><i class="fa-solid fa-play"></i> START</button>
+                <button class="btn btn-stop" onclick="sendCommand('stop', 'frontend')" id="stop-frontend" disabled><i class="fa-solid fa-stop"></i> STOP</button>
+                <i class="fa-solid fa-chevron-down" style="margin-left: 2rem; color: var(--text-muted)"></i>
+            </div>
+        </div>
+        <div class="terminal-panel"><div class="terminal-output" id="logs-frontend"></div></div>
+    </div>
+
+    <!-- BACKEND -->
+    <div class="card" id="card-backend">
+        <div class="card-header" onclick="toggleCard('card-backend')">
+            <div class="app-title"><div class="led" id="led-backend"></div> <i class="fa-solid fa-bolt"></i> Reyval Backend-API</div>
+            <div class="controls" onclick="event.stopPropagation()">
+                <button class="btn btn-run" onclick="sendCommand('run', 'backend')" id="run-backend"><i class="fa-solid fa-play"></i> START</button>
+                <button class="btn btn-stop" onclick="sendCommand('stop', 'backend')" id="stop-backend" disabled><i class="fa-solid fa-stop"></i> STOP</button>
+                <i class="fa-solid fa-chevron-down" style="margin-left: 2rem; color: var(--text-muted)"></i>
+            </div>
+        </div>
+        <div class="terminal-panel"><div class="terminal-output" id="logs-backend"></div></div>
+    </div>
+
+    <!-- GIT -->
+    <div class="card" id="card-git">
+        <div class="card-header" onclick="toggleCard('card-git')">
+            <div class="app-title"><div class="led" id="led-git"></div> <i class="fa-brands fa-git-alt"></i> Source Protocol (Git)</div>
+            <div class="controls" onclick="event.stopPropagation()">
+                <input type="text" id="git-msg" style="background:rgba(0,0,0,0.3); border:1px solid var(--border); padding:0.6rem; border-radius:8px; color:#fff; width:250px;" placeholder="Mensaje personalizado...">
+                <button class="btn btn-run" onclick="sendCommand('run', 'git', 'status')">STATUS</button>
+                <button class="btn btn-run" onclick="sendCommand('run', 'git', 'push')">PUSH</button>
+                <i class="fa-solid fa-chevron-down" style="margin-left: 2rem; color: var(--text-muted)"></i>
+            </div>
+        </div>
+        <div class="terminal-panel"><div class="terminal-output" id="logs-git"></div></div>
+    </div>
+</div>
+
+<!-- ARCHITECTURE LAB -->
+<div id="architecture" class="container">
+    <div class="lab-hero">
+        <h2 style="font-size: 3rem; font-weight: 800; margin-bottom: 0.5rem;">Architecture Lab</h2>
+        <p style="color: var(--text-muted); font-size: 1.2rem;">Manual Maestro para la Inducción de Arquitectos Senior</p>
+
+        <!-- CORE MATRIX -->
+        <h3 style="margin-top: 4rem; color: #fff; border-left: 5px solid var(--primary); padding-left: 1.5rem;">The Core Matrix: Technology vs Library</h3>
+        <div class="matrix-container">
+            <div class="matrix-box">
+                <h4><i class="fa-solid fa-microchip"></i> Technology (Stack)</h4>
+                <div class="matrix-item"><b>Node.js (v20+)</b><span>Runtime de ejecución de alto rendimiento asíncrono.</span></div>
+                <div class="matrix-item"><b>NestJS (v11)</b><span>Framework de backend con arquitectura modular basada en DI (Dependency Injection).</span></div>
+                <div class="matrix-item"><b>Angular (v21)</b><span>Framework de cliente basado en Signals para una gestión reactiva pura.</span></div>
+            </div>
+            <div class="matrix-box">
+                <h4><i class="fa-solid fa-toolbox"></i> Backend Libraries</h4>
+                <div class="matrix-item"><b>Prisma v5.2</b><span>Toolkit de persistencia Type-Safe con introspección de esquemas.</span></div>
+                <div class="matrix-item"><b>Passport/JWT</b><span>Gestión de identidades bajo el estándar RFC 7519.</span></div>
+                <div class="matrix-item"><b>Decimal.js</b><span>Biblioteca de precisión binaria para transacciones financieras.</span></div>
+            </div>
+            <div class="matrix-box">
+                <h4><i class="fa-solid fa-kit-medical"></i> Advanced Utils</h4>
+                <div class="matrix-item"><b>PDFKit-Table</b><span>Generación de binarios PDF con estructura tabular compleja.</span></div>
+                <div class="matrix-item"><b>ExcelJS</b><span>Manipulación de flujos de datos para reportes de BI.</span></div>
+                <div class="matrix-item"><b>Bcryptjs</b><span>Algoritmo de hashing robusto para el resguardo de credenciales.</span></div>
+            </div>
+        </div>
+
+        <!-- MODULAR TRACEABILITY BACKEND -->
+        <h3 style="margin-top: 5rem; color: #fff; border-left: 5px solid #3b82f6; padding-left: 1.5rem;">Arquitectura Modular (Backend): Trazabilidad Técnica</h3>
+        <table class="traceability-table">
+            <thead>
+                <tr>
+                    <th>Domain Module</th>
+                    <th>Library Dependencies</th>
+                    <th>Architectural Responsibility</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td><b class="module-badge">Auth & Security</b></td>
+                    <td><span class="lib-tag">Passport</span> <span class="lib-tag">JWT</span> <span class="lib-tag">Bcryptjs</span></td>
+                    <td>Gestión del ciclo de vida de la sesión y hashing de secretos del sistema.</td>
+                </tr>
+                <tr>
+                    <td><b class="module-badge">Ventas & Amortización</b></td>
+                    <td><span class="lib-tag">Decimal.js</span> <span class="lib-tag">RxJS</span></td>
+                    <td>Cálculo dinámico de planes de pago y validación de saldos de precisión financiera.</td>
+                </tr>
+                <tr>
+                    <td><b class="module-badge">Reportes BI</b></td>
+                    <td><span class="lib-tag">PDFKit-Table</span> <span class="lib-tag">ExcelJS</span></td>
+                    <td>Orquestación de motores de exportación para emisión de estados de cuenta masivos.</td>
+                </tr>
+                <tr>
+                    <td><b class="module-badge">CRM & Oportunidades</b></td>
+                    <td><span class="lib-tag">Class-Validator</span> <span class="lib-tag">UUID</span></td>
+                    <td>Gestión de prospectos con validación de metadatos estricta a nivel de DTO.</td>
+                </tr>
+            </tbody>
+        </table>
+
+        <!-- MODULAR TRACEABILITY FRONTEND -->
+        <h3 style="margin-top: 5rem; color: #fff; border-left: 5px solid #f97316; padding-left: 1.5rem;">Arquitectura Modular (Frontend): Reactive Flow</h3>
+        <table class="traceability-table">
+            <thead>
+                <tr>
+                    <th>Feature Module</th>
+                    <th>Library / Core Integration</th>
+                    <th>Architectural Responsibility</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td><b class="module-badge">Dashboard (GIS)</b></td>
+                    <td><span class="lib-tag">Leaflet</span> <span class="lib-tag">RxJS</span></td>
+                    <td>Visualización geográfica de inventario basada en capas SVG dinámicas.</td>
+                </tr>
+                <tr>
+                    <td><b class="module-badge">Global Services</b></td>
+                    <td><span class="lib-tag">Signals</span> <span class="lib-tag">HttpClient</span></td>
+                    <td>Mantenimiento del estado global y comunicación RESTful sincronizada.</td>
+                </tr>
+                <tr>
+                    <td><b class="module-badge">Auth Interceptors</b></td>
+                    <td><span class="lib-tag">Angular Core</span></td>
+                    <td>Inyección automática de cabeceras portadoras (Bearer) y manejo de errores 401.</td>
+                </tr>
+            </tbody>
+        </table>
+
+        <!-- DEVOPS & INFRA -->
+        <h3 style="margin-top: 5rem; color: #fff; border-left: 5px solid #ef4444; padding-left: 1.5rem;">DevOps & Infraestructura (Oracle Cloud Stack)</h3>
+        <div class="devops-grid">
+            <div class="infra-card">
+                <div class="pipeline-step"><div class="step-icon">1</div><div><b>Compilación (Build)</b><p>Reducción de assets vía <code>ng build</code> y <code>nest build</code> para optimización de paquetes.</p></div></div>
+                <div class="pipeline-step"><div class="step-icon">2</div><div><b>Transporte Seguro (SCP)</b><p>Inyección de binarios a través del túnel SSH utilizando la llave privada RSA de 2048 bits.</p></div></div>
+                <div class="pipeline-step"><div class="step-icon">3</div><div><b>Despliegue Atómico</b><p>Sincronización hacia la ruta crítica <code>/var/www/reyval/</code> en el entorno de producción Cloud.</p></div></div>
+            </div>
+            <div class="infra-card" style="background: rgba(239, 68, 68, 0.05); border-color: rgba(239, 68, 68, 0.2);">
+                <h4>Seguridad de Capa 4</h4>
+                <p style="font-size: 0.85rem; margin-top: 1rem;">Acceso restringido vía SSH Key:<br><code>AbTech/ssh-key-2026-01-09.key</code></p>
+                <p style="font-size: 0.85rem; margin-top: 1rem;">IP Productiva:<br><code>143.47.101.209</code></p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div id="toast" class="copy-toast">MASTRE COMMAND COPIADO AL PORTAPAPEL</div>
+
+<script>
+    const BRIDGE_URL = 'http://localhost:3030';
+    let eventSource = null;
+
+    function switchTab(tabId, el) {
+        document.querySelectorAll('.container').forEach(c => c.classList.remove('active'));
+        document.querySelectorAll('.nav-item').forEach(i => i.classList.remove('active'));
+        document.getElementById(tabId).classList.add('active');
+        el.classList.add('active');
+    }
+
+    function toggleCard(id) { document.getElementById(id).classList.toggle('expanded'); }
+
+    function sendCommand(path, app, cmdType) {
+        let url = `${BRIDGE_URL}/${path}?app=${app}`;
+        if(cmdType) url += `&cmd=${cmdType}`;
+        if(app === 'git' && cmdType === 'push') {
+            const msg = document.getElementById('git-msg').value;
+            if(msg) url += `&msg=${encodeURIComponent(msg)}`;
+        }
+        fetch(url).catch(() => showBridgeWarning());
+    }
+
+    function initBridge() {
+        if (eventSource) eventSource.close();
+        eventSource = new EventSource(`${BRIDGE_URL}/events`);
+        eventSource.onopen = () => { document.getElementById('bridge-warning').style.display = 'none'; };
+        eventSource.onerror = () => { showBridgeWarning(); };
+        eventSource.addEventListener('init', (e) => {
+            const data = JSON.parse(e.data);
+            Object.keys(data).forEach(app => updateStatus(app, data[app].state));
+        });
+        eventSource.addEventListener('state-change', (e) => {
+            const data = JSON.parse(e.data);
+            updateStatus(data.app, data.state);
+        });
+        eventSource.addEventListener('log', (e) => {
+            const data = JSON.parse(e.data);
+            appendLog(data.app, data.time, data.content);
+        });
+    }
+
+    function updateStatus(app, state) {
+        const led = document.getElementById(`led-${app}`);
+        const runBtn = document.getElementById(`run-${app}`);
+        const stopBtn = document.getElementById(`stop-${app}`);
+        if(led) state === 'running' ? led.classList.add('active') : led.classList.remove('active');
+        if(runBtn) runBtn.disabled = (state === 'running');
+        if(stopBtn) stopBtn.disabled = (state !== 'running');
+    }
+
+    function appendLog(app, time, content) {
+        const div = document.getElementById(`logs-${app}`);
+        if(!div) return;
+        const line = document.createElement('div');
+        line.className = 'line';
+        line.innerHTML = `<span style="color:#666">[${time}]</span> ${content}`;
+        div.appendChild(line);
+        div.scrollTop = div.scrollHeight;
+    }
+
+    function showBridgeWarning() { document.getElementById('bridge-warning').style.display = 'flex'; }
+    function copyText(text) {
+        navigator.clipboard.writeText(text).then(() => {
+            const toast = document.getElementById('toast');
+            toast.className = "copy-toast show";
+            setTimeout(() => toast.className = "copy-toast", 2000);
+        });
+    }
+
+    initBridge();
+    setInterval(() => { if (!eventSource || eventSource.readyState === 2) initBridge(); }, 5000);
+</script>
+
+</body>
+</html>

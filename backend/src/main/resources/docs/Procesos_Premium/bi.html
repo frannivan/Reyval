@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>UML: Inteligencia de Negocio - Reyval ERP</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/mermaid/dist/mermaid.min.js"></script>
+    <style>
+        :root {
+            --primary-color: #2c3e50;
+            --accent-color: #f39c12;
+            --bg-color: #f8f9fa;
+        }
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; line-height: 1.6; color: #333; margin: 0; background: var(--bg-color); }
+        .container { max-width: 900px; margin: 0 auto; padding: 2rem; background: #fff; box-shadow: 0 0 10px rgba(0,0,0,0.05); }
+        .no-print { display: flex; justify-content: space-between; align-items: center; margin-bottom: 2rem; }
+        .btn { padding: 8px 16px; border-radius: 4px; text-decoration: none; font-weight: 600; cursor: pointer; border: none; transition: 0.3s; }
+        .btn-print { background: var(--accent-color); color: #fff; }
+        .btn-back { background: #eee; color: #444; }
+        header { border-bottom: 3px solid var(--primary-color); margin-bottom: 2rem; padding-bottom: 1rem; }
+        h1 { margin: 0; color: var(--primary-color); font-size: 2rem; }
+        .section { margin-bottom: 3rem; }
+        h2 { border-left: 5px solid var(--accent-color); padding-left: 15px; color: var(--primary-color); margin-top: 2rem; }
+        table { width: 100%; border-collapse: collapse; margin: 1rem 0; }
+        table, th, td { border: 1px solid #ddd; }
+        th, td { padding: 12px; text-align: left; vertical-align: top; }
+        th { background: #f4f4f4; color: #666; width: 30%; }
+        .mermaid { background: #fff; padding: 1rem; margin: 1rem 0; }
+        
+        @media print {
+            .no-print { display: none !important; }
+            body { background: #fff; font-size: 11pt; }
+            .container { width: 100%; max-width: 100%; box-shadow: none; padding: 0; }
+        }
+    </style>
+</head>
+<body>
+<div class="container">
+    <div class="no-print">
+        <a href="../documentation.html" class="btn btn-back"><i class="fas fa-arrow-left"></i> Volver</a>
+        <button onclick="window.print()" class="btn btn-print"><i class="fas fa-print"></i> Imprimir Reporte</button>
+    </div>
+
+    <header>
+        <h1>CU10: Inteligencia de Negocio (BI)</h1>
+        <p>Documentación Formal de Casos de Uso - Estándar UML</p>
+    </header>
+
+    <!-- Sección 1: Diagrama de Casos de Uso -->
+    <div class="section">
+        <h2>1. Diagrama de Casos de Uso (UML)</h2>
+        <p>Capacidades analíticas y dashboards de toma de decisiones.</p>
+        <div class="mermaid">
+        graph TD
+            subgraph Analytics_Suite ["Módulo BI Reyval"]
+                UC1((Visualizar Dashboard Estratégico))
+                UC2((Generar Reporte PDF))
+                UC3((Exportar Datos Excel))
+                UC4((Configurar Metas de Ventas))
+                UC5((Auditar Movimientos))
+                
+                UC2 -.->|&lt;&lt;include&gt;&gt;| UC1
+                UC3 -.->|&lt;&lt;include&gt;&gt;| UC1
+            end
+
+            DIR[👤 Directivo] --- UC1
+            DIR --- UC2
+            DIR --- UC4
+            
+            ADM[👤 Administrador] --- UC5
+            ADM --- UC3
+        </div>
+    </div>
+
+    <!-- Sección 2: Descripción Textual Formal -->
+    <div class="section">
+        <h2>2. Descripción: Análisis de Rendimiento de Ventas</h2>
+        <table>
+            <tr><th>Objetivo</th><td>Obtener una visión clara y en tiempo real del desempeño comercial y financiero de la empresa.</td></tr>
+            <tr><th>Actores</th><td>Directivo (Iniciador), Sistema (Pasivo).</td></tr>
+            <tr><th>Iniciación</th><td>El Directivo accede a la pestaña de "SmartDash" desde la barra lateral.</td></tr>
+            <tr><th>Flujo de Mensajes</th><td>
+                1. El Directivo selecciona el rango de fechas y fraccionamientos a analizar.<br>
+                2. El Sistema realiza cálculos agregados (Promedios, Sumas, Proyecciones).<br>
+                3. El Sistema renderiza gráficas comparativas vs el periodo anterior.<br>
+                4. El Directivo solicita el reporte consolidado en PDF.<br>
+                5. El Sistema genera y entrega el archivo con marca de tiempo oficial.
+            </td></tr>
+            <tr><th>Flujos Alternativos</th><td>
+                <b>A1: Sin datos suficientes:</b> El Sistema muestra advertencia de "Muestra Estadística irrelevante".
+            </td></tr>
+            <tr><th>Valor Final</th><td>Información estratégica digerida para la planificación presupuestal y operativa.</td></tr>
+        </table>
+    </div>
+
+    <!-- Sección 3: Modelado Dinámico (MindMap) -->
+    <div class="section">
+        <h2>3. Mapa Mental de Indicadores (KPIs)</h2>
+        <div class="mermaid">
+        mindmap
+            root((Reyval SmartDash))
+                Comercial
+                    Conversión de Leads
+                    Ventas por Vendedor
+                    Promedio de Cierre
+                Finanzas
+                    Cuentas por Cobrar
+                    Ingreso Real vs Proyectado
+                    Tasa de Morosidad
+                Inventario
+                    Velocidad de Absorción
+                    Lotes en Proceso Legal
+        </div>
+    </div>
+</div>
+
+<script>
+    mermaid.initialize({ startOnLoad: true, theme: 'neutral', fontFamily: 'Segoe UI' });
+</script>
+</body>
+</html>

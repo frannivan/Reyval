@@ -1,0 +1,14 @@
+{
+    "version": 2,
+    "public": true,
+    "rewrites": [
+        {
+            "source": "/api/(.*)",
+            "destination": "https://reyval-backend.onrender.com/api/$1"
+        },
+        {
+            "source": "/(.*)",
+            "destination": "/index.html"
+        }
+    ]
+}

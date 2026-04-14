@@ -1,0 +1,48 @@
+# Dependency directories
+node_modules/
+backend-api/node_modules/
+frontend/node_modules/
+
+# Build outputs
+dist/
+out-tsc/
+out/
+backend-api/dist/
+frontend/dist/
+
+# Angular cache
+.angular/
+
+# IDE files
+.idea/
+.vscode/
+*.swp
+*.swo
+.DS_Store
+
+# Environment variables
+.env
+.env.*
+
+# Prisma / SQLite
+*.db
+*.db-journal
+backend-api/prisma/*.db
+backend-api/prisma/*.db-journal
+
+# Logs
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# OS files
+Thumbs.db
+desktop.ini
+
+# Project specific backups/hidden
+__backend_bak_HIDDEN__/
+__frontend_bak_HIDDEN__/
+.history/
+.lh/
+frontend/reyval-ui.tar.gz

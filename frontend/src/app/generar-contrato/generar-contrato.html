@@ -1,0 +1,266 @@
+<div class="container-fluid py-4 min-vh-100 bg-light">
+    <div class="row justify-content-center">
+        <div class="col-xl-10 col-lg-11">
+            
+            <!-- Header Section -->
+            <div class="d-flex align-items-center justify-content-between mb-4 animate-fade-in">
+                <div>
+                    <h2 class="fw-bold text-dark mb-1">Formalización de Contrato</h2>
+                    <p class="text-muted mb-0">Complete el esquema financiero para el nuevo adquirente</p>
+                </div>
+                <button class="btn btn-outline-secondary btn-sm rounded-pill px-3" routerLink="/admin/lotes">
+                    <i class="fas fa-times me-2"></i>Cancelar
+                </button>
+            </div>
+
+            <div *ngIf="successMsg" class="alert alert-success border-0 shadow-sm mb-4 animate-fade-in py-3 px-4 rounded-4">
+                <i class="fas fa-check-circle me-2"></i> {{ successMsg }}
+            </div>
+            
+            <div *ngIf="errorMsg" class="alert alert-danger border-0 shadow-sm mb-4 animate-fade-in py-3 px-4 rounded-4">
+                <i class="fas fa-exclamation-triangle me-2"></i> {{ errorMsg }}
+            </div>
+
+            <form (ngSubmit)="submitContract()" class="row g-4">
+                
+                <!-- Left Column: Input Data -->
+                <div class="col-lg-7">
+                    <div class="card border-0 shadow-sm rounded-4 h-100 overflow-hidden">
+                        <div class="card-header bg-white border-0 py-4 px-4">
+                            <h5 class="card-title fw-bold mb-0">Detalles de la Operación</h5>
+                        </div>
+                        <div class="card-body px-4 pb-4 pt-0">
+                            
+                            <!-- Part 1: Parties -->
+                            <div class="mb-4">
+                                <label class="form-label fw-semibold small text-uppercase text-muted ls-wide mb-3">Intervención</label>
+                                <div class="row g-3">
+                                    <div class="col-md-12 mb-3">
+                                        <div class="d-flex justify-content-between align-items-center p-3 bg-light rounded-3 border">
+                                            <div>
+                                                <h6 class="mb-0 fw-bold">Adquirente / Comprador</h6>
+                                                <small class="text-muted">Seleccione un cliente existente o registre uno nuevo</small>
+                                            </div>
+                                            <div class="btn-group" role="group">
+                                                <button type="button" class="btn btn-sm px-3" [class.btn-primary]="!isNewClient" [class.btn-outline-primary]="isNewClient" (click)="isNewClient = false">
+                                                    <i class="fas fa-search me-1"></i> Buscar
+                                                </button>
+                                                <button type="button" class="btn btn-sm px-3" [class.btn-primary]="isNewClient" [class.btn-outline-primary]="!isNewClient" (click)="isNewClient = true">
+                                                    <i class="fas fa-plus-circle me-1"></i> Nuevo
+                                                </button>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <div class="col-md-12" *ngIf="!isNewClient">
+                                        <div class="form-floating mb-3">
+                                            <select class="form-select border-0 bg-light rounded-3" id="clientSelect" [(ngModel)]="contractData.clienteId" name="clienteId" required>
+                                                <option [ngValue]="null" disabled>Seleccione un adquirente</option>
+                                                <option *ngFor="let c of clientes" [ngValue]="c.id">{{ c.nombre }} {{ c.apellidos }}</option>
+                                            </select>
+                                            <label for="clientSelect">Cliente / Comprador</label>
+                                        </div>
+                                    </div>
+
+                                    <!-- New Client Form -->
+                                    <ng-container *ngIf="isNewClient">
+                                        <div class="col-md-6">
+                                            <div class="form-floating">
+                                                <input type="text" class="form-control border-0 bg-light rounded-3" id="nombre" [(ngModel)]="contractData.nombre" name="nombre" required placeholder="Nombre">
+                                                <label for="nombre">Nombre(s)</label>
+                                            </div>
+                                        </div>
+                                        <div class="col-md-6">
+                                            <div class="form-floating">
+                                                <input type="text" class="form-control border-0 bg-light rounded-3" id="apellidos" [(ngModel)]="contractData.apellidos" name="apellidos" required placeholder="Apellidos">
+                                                <label for="apellidos">Apellidos</label>
+                                            </div>
+                                        </div>
+                                        <div class="col-md-6">
+                                            <div class="form-floating">
+                                                <input type="email" class="form-control border-0 bg-light rounded-3" id="email" [(ngModel)]="contractData.email" name="email" required placeholder="Email">
+                                                <label for="email">Correo Electrónico</label>
+                                            </div>
+                                        </div>
+                                        <div class="col-md-6">
+                                            <div class="form-floating">
+                                                <input type="text" class="form-control border-0 bg-light rounded-3" id="telefono" [(ngModel)]="contractData.telefono" name="telefono" required placeholder="Teléfono">
+                                                <label for="telefono">Teléfono (Será su contraseña)</label>
+                                            </div>
+                                        </div>
+                                        <div class="col-md-6">
+                                            <div class="form-floating">
+                                                <input type="text" class="form-control border-0 bg-light rounded-3" id="ine" [(ngModel)]="contractData.ine" name="ine" placeholder="INE">
+                                                <label for="ine">INE / Identificación</label>
+                                            </div>
+                                        </div>
+                                        <div class="col-md-6">
+                                            <div class="form-floating">
+                                                <input type="text" class="form-control border-0 bg-light rounded-3" id="direccion" [(ngModel)]="contractData.direccion" name="direccion" placeholder="Dirección">
+                                                <label for="direccion">Dirección</label>
+                                            </div>
+                                        </div>
+                                    </ng-container>
+                                    <div class="col-md-6">
+                                        <div class="form-floating">
+                                            <select class="form-select border-0 bg-light rounded-3" id="loteSelect" [(ngModel)]="loteSelected" name="loteId" (change)="onLoteSelect(loteSelected)" required>
+                                                <option [ngValue]="null" disabled>Seleccione lote</option>
+                                                <option *ngFor="let l of lotes" [ngValue]="l">Lote {{ l.numeroLote }} ({{ l.fraccionamiento?.nombre || 'Indep.' }})</option>
+                                            </select>
+                                            <label for="loteSelect">Unidad de Inversión</label>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <div class="form-floating">
+                                            <select class="form-select border-0 bg-light rounded-3" id="vendedorSelect" [(ngModel)]="contractData.vendedorId" name="vendedorId">
+                                                <option value="">Selección de Vendedor</option>
+                                                <option *ngFor="let v of vendedores" [value]="v.id">{{ v.username }}</option>
+                                            </select>
+                                            <label for="vendedorSelect">Vendedor Asignado</label>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <hr class="my-4 opacity-10">
+
+                            <!-- Part 2: Financials -->
+                            <div>
+                                <label class="form-label fw-semibold small text-uppercase text-muted ls-wide mb-3">Esquema Financiero</label>
+                                <div class="row g-3">
+                                    <div class="col-md-6">
+                                        <label class="form-label small fw-bold">Precio Total de Venta</label>
+                                        <div class="input-group">
+                                            <span class="input-group-text border-0 bg-light text-muted">$</span>
+                                            <input type="number" class="form-control border-0 bg-light fs-5 fw-bold" [(ngModel)]="contractData.montoTotal" name="total" readonly>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <label class="form-label small fw-bold">Enganche Inicial</label>
+                                        <div class="input-group">
+                                            <span class="input-group-text border-0 bg-light text-muted">$</span>
+                                            <input type="number" class="form-control border-0 bg-light fs-5 fw-bold text-primary" [(ngModel)]="contractData.enganche" name="enganche">
+                                        </div>
+                                        <small class="text-muted mt-1 d-block" *ngIf="contractData.montoTotal > 0">
+                                            Recomendado: {{ contractData.montoTotal * 0.10 | currency:'MXN' }} (10%)
+                                        </small>
+                                    </div>
+                                    <div class="col-md-6 mt-4">
+                                        <label class="form-label small fw-bold">Plazo de Financiamiento</label>
+                                        <div class="d-flex align-items-center">
+                                            <input type="range" class="form-range" min="1" max="180" step="1" [(ngModel)]="contractData.plazoMeses" name="plazoRange">
+                                            <span class="badge bg-dark rounded-pill ms-3 px-3 py-2 fs-6">{{ contractData.plazoMeses }} m</span>
+                                        </div>
+                                        <div class="mt-2 text-center">
+                                            <input type="number" class="form-control border-0 bg-light text-center rounded-3 w-50 d-inline-block" [(ngModel)]="contractData.plazoMeses" name="plazo">
+                                        </div>
+                                    </div>
+                                    <div class="col-md-6 mt-4">
+                                        <label class="form-label small fw-bold">Tasa de Interés Anual (%)</label>
+                                        <div class="input-group">
+                                            <input type="number" step="0.1" class="form-control border-0 bg-light text-center fs-5 rounded-3" [(ngModel)]="contractData.tasaAnual" name="tasa">
+                                            <span class="input-group-text border-0 bg-light text-muted">%</span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Right Column: Summary & Preview -->
+                <div class="col-lg-5">
+                    <div class="card border-0 shadow-sm rounded-4 bg-dark text-white p-2">
+                        <div class="card-body p-4">
+                            <h5 class="fw-bold mb-4">Resumen de Inversión</h5>
+                            
+                            <!-- Mini Card Lote -->
+                            <div class="bg-secondary bg-opacity-25 rounded-4 p-3 mb-4" *ngIf="loteSelected">
+                                <div class="d-flex align-items-center">
+                                    <div class="bg-primary rounded-3 p-3 me-3 text-white">
+                                        <i class="fas fa-home fa-lg"></i>
+                                    </div>
+                                    <div>
+                                        <h6 class="mb-0 fw-bold">Lote {{ loteSelected.numeroLote }}</h6>
+                                        <small class="text-white-50">{{ loteSelected.fraccionamiento?.nombre || 'Propiedad Independiente' }}</small>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Financial Breakdown -->
+                            <div class="mb-4">
+                                <div class="d-flex justify-content-between mb-2">
+                                    <span class="text-white-50">Base de Financiamiento</span>
+                                    <span>{{ contractData.montoTotal - contractData.enganche | currency:'MXN' }}</span>
+                                </div>
+                                <div class="d-flex justify-content-between mb-2">
+                                    <span class="text-white-50">Tasa de Interés</span>
+                                    <span>{{ contractData.tasaAnual }}%</span>
+                                </div>
+                                <div class="d-flex justify-content-between mb-2">
+                                    <span class="text-white-50">Periodo</span>
+                                    <span>{{ contractData.plazoMeses }} meses</span>
+                                </div>
+                                <hr class="border-secondary opacity-50 my-3">
+                                <div class="d-flex justify-content-between align-items-center">
+                                    <span class="h6 mb-0">Couta Mensual</span>
+                                    <span class="h3 fw-bold text-success mb-0">{{ estimatedMonthlyPayment | currency:'MXN' }}</span>
+                                </div>
+                            </div>
+
+                            <!-- Amortization Table Preview (Reduced) -->
+                            <div class="mb-4" *ngIf="amortizationTable.length > 0">
+                                <label class="small text-white-50 mb-2">Previsualización (Primeras 12 mensualidades)</label>
+                                <div class="table-responsive bg-white bg-opacity-10 rounded-3 p-2">
+                                    <table class="table table-sm table-dark table-borderless mb-0" style="font-size: 0.75rem;">
+                                        <thead>
+                                            <tr class="text-white-50 border-bottom border-secondary">
+                                                <th>Mes</th>
+                                                <th>Capital</th>
+                                                <th>Interés</th>
+                                                <th class="text-end">Saldo</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            <tr *ngFor="let row of amortizationTable">
+                                                <td>#{{ row.num }}</td>
+                                                <td>{{ row.capital | currency:'MXN' }}</td>
+                                                <td>{{ row.interes | currency:'MXN' }}</td>
+                                                <td class="text-end fw-bold">{{ row.saldo | currency:'MXN' }}</td>
+                                            </tr>
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+
+                            <!-- Down Payment Options -->
+                            <div class="card bg-white bg-opacity-10 border-0 rounded-4 mb-4">
+                                <div class="card-body">
+                                    <div class="form-check form-switch mb-2">
+                                        <input class="form-check-input custom-switch" type="checkbox" id="checkDown" [(ngModel)]="registerDownPayment" name="regDown">
+                                        <label class="form-check-label fw-bold text-white mb-0 ms-2" for="checkDown">Registrar Enganche Ahora</label>
+                                    </div>
+                                    <div *ngIf="registerDownPayment" class="animate-fade-in mt-3">
+                                        <input type="text" class="form-control bg-dark border-secondary text-white rounded-3 small" 
+                                               [(ngModel)]="downPaymentReference" name="downRef" 
+                                               placeholder="Referencia de pago (Ej. Transf 1234)">
+                                    </div>
+                                </div>
+                            </div>
+
+                            <button type="submit" class="btn btn-primary w-100 py-3 rounded-4 fw-bold shadow-lg" [disabled]="isSaving">
+                                <span *ngIf="!isSaving"><i class="fas fa-file-contract me-2"></i>GENERAR CONTRATO</span>
+                                <span *ngIf="isSaving">Procesando...</span>
+                            </button>
+                            
+                            <p class="text-center text-white-50 small mt-4 mb-0">
+                                <i class="fas fa-shield-alt me-1"></i> Transacción segura y auditada
+                            </p>
+                        </div>
+                    </div>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>

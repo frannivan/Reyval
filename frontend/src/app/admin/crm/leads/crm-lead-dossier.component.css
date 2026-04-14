@@ -1,0 +1,179 @@
+.dossier-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.4);
+    z-index: 1050;
+    display: flex;
+    justify-content: flex-end;
+}
+
+.dossier-card {
+    width: 450px;
+    height: 100%;
+    background: white;
+    box-shadow: -5px 0 15px rgba(0,0,0,0.1);
+    display: flex;
+    flex-direction: column;
+}
+
+.dossier-header {
+    background: var(--primary-color, #2c3e50);
+    padding: 2rem 1.5rem;
+    color: white;
+}
+
+.dossier-body {
+    padding: 1.5rem;
+    flex-grow: 1;
+    display: flex;
+    flex-direction: column;
+    overflow-y: auto;
+}
+
+/* Timeline Salesforce Style */
+.timeline-container {
+    padding: 1rem 0;
+}
+
+.timeline-path {
+    display: flex;
+    justify-content: space-between;
+    position: relative;
+}
+
+.timeline-path::before {
+    content: '';
+    position: absolute;
+    top: 15px;
+    left: 10%;
+    right: 10%;
+    height: 2px;
+    background: #e2e8f0;
+    z-index: 1;
+}
+
+.timeline-step {
+    position: relative;
+    z-index: 2;
+    text-align: center;
+    width: 20%;
+}
+
+.step-circle {
+    width: 30px;
+    height: 30px;
+    background: white;
+    border: 2px solid #e2e8f0;
+    border-radius: 50%;
+    margin: 0 auto;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.75rem;
+    font-weight: bold;
+    color: #94a3b8;
+    transition: all 0.3s ease;
+}
+
+.timeline-step.completed .step-circle {
+    background: #10b981;
+    border-color: #10b981;
+    color: white;
+}
+
+.timeline-step.active .step-circle {
+    background: var(--primary-color);
+    border-color: var(--primary-color);
+    color: white;
+    box-shadow: 0 0 0 4px rgba(44, 62, 80, 0.1);
+}
+
+.step-label {
+    font-size: 0.65rem;
+    margin-top: 0.5rem;
+    font-weight: 600;
+    color: #64748b;
+    text-transform: uppercase;
+}
+
+.timeline-step.active .step-label {
+    color: var(--primary-color);
+}
+
+/* Actions Grid */
+.actions-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
+}
+
+.action-btn {
+    border: 1px solid #e2e8f0;
+    background: white;
+    padding: 12px;
+    border-radius: 12px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 8px;
+    transition: all 0.2s;
+}
+
+.action-btn i {
+    font-size: 1.25rem;
+}
+
+.action-btn span {
+    font-size: 0.7rem;
+    font-weight: 600;
+}
+
+.action-btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 6px rgba(0,0,0,0.05);
+}
+
+.action-btn.wa i { color: #25d366; }
+.action-btn.email i { color: #3b82f6; }
+.action-btn.price i { color: #f59e0b; }
+.action-btn.budget i { color: #06b6d4; }
+
+/* Details Section */
+.section-title {
+    font-size: 0.85rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    color: #64748b;
+    border-bottom: 1px solid #f1f5f9;
+    padding-bottom: 0.5rem;
+    margin-bottom: 1rem;
+}
+
+.detail-row {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 0.75rem;
+    font-size: 0.9rem;
+}
+
+.detail-row label {
+    color: #94a3b8;
+    margin-bottom: 0;
+}
+
+.detail-row span {
+    font-weight: 600;
+    color: #1e293b;
+}
+
+.animate-slide-in-right {
+    animation: slideInRight 0.3s ease-out;
+}
+
+@keyframes slideInRight {
+    from { transform: translateX(100%); }
+    to { transform: translateX(0); }
+}

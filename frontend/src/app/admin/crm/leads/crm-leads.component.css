@@ -1,0 +1,16 @@
+/* CSS para CRM Leads */
+.table th {
+    font-size: 0.85rem;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    border-top: none;
+}
+
+.rounded-pill {
+    padding-left: 1.25rem !important;
+    padding-right: 1.25rem !important;
+}
+
+.badge {
+    padding: 0.5em 0.8em;
+}

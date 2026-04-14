@@ -1,0 +1,14 @@
+/* CSS para CRM Opportunities */
+.table td {
+    vertical-align: middle;
+}
+
+.badge-light {
+    background-color: #f8f9fa;
+    color: #1a2a6c;
+}
+
+select.form-control:focus {
+    box-shadow: none;
+    background-color: #eef2f7;
+}

@@ -1,0 +1,74 @@
+<div class="container mt-4">
+    <div class="row">
+        <!-- Dashboard Header -->
+        <div class="col-12 mb-4">
+            <h2 class="display-6 fw-bold text-dark">Panel de Recepción</h2>
+            <p class="text-muted">Gestiona contratos, cobros y validaciones pendientes.</p>
+        </div>
+
+        <!-- Quick Access Cards -->
+        <div class="col-md-3 mb-4">
+            <div class="card bg-primary text-white shadow-sm border-0 h-100 hover-lift cursor-pointer" routerLink="/admin/generar-contrato">
+                <div class="card-body d-flex flex-column align-items-center justify-content-center py-5">
+                    <div class="rounded-circle bg-white-50 p-4 mb-3">
+                        <i class="fas fa-file-signature fa-2x"></i>
+                    </div>
+                    <h5 class="fw-bold text-center">Generar Contrato</h5>
+                    <p class="small opacity-75 text-center px-3">Formalizar venta</p>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-3 mb-4">
+            <div class="card bg-success text-white shadow-sm border-0 h-100 hover-lift cursor-pointer" routerLink="/admin" [queryParams]="{view: 'payments'}">
+                <div class="card-body d-flex flex-column align-items-center justify-content-center py-5">
+                    <div class="rounded-circle bg-white-50 p-4 mb-3">
+                        <i class="fas fa-money-bill-wave fa-2x"></i>
+                    </div>
+                    <h5 class="fw-bold text-center">Registrar Pago</h5>
+                    <p class="small opacity-75 text-center px-3">Cobros y abonos</p>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-3 mb-4">
+            <div class="card bg-info text-white shadow-sm border-0 h-100 hover-lift cursor-pointer" routerLink="/validacion-pagos">
+                <div class="card-body d-flex flex-column align-items-center justify-content-center py-5 position-relative">
+                    <span class="badge bg-danger position-absolute top-0 start-100 translate-middle rounded-pill" *ngIf="pendingCount > 0">
+                        {{ pendingCount }}
+                    </span>
+                    <div class="rounded-circle bg-white-50 p-4 mb-3">
+                        <i class="fas fa-clipboard-check fa-2x"></i>
+                    </div>
+                    <h5 class="fw-bold">Validación de Pagos</h5>
+                    <p class="small opacity-75 text-center px-3">Revisar depósitos</p>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-3 mb-4">
+            <div class="card bg-warning text-dark shadow-sm border-0 h-100 hover-lift cursor-pointer" routerLink="/admin/crm/opportunities">
+                <div class="card-body d-flex flex-column align-items-center justify-content-center py-5">
+                    <div class="rounded-circle bg-dark-10 p-4 mb-3" style="background: rgba(0,0,0,0.1);">
+                        <i class="fas fa-funnel-dollar fa-2x"></i>
+                    </div>
+                    <h5 class="fw-bold">Oportunidades</h5>
+                    <p class="small opacity-75 text-center px-3">Seguimiento de ventas</p>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Secondary Tools -->
+    <div class="mt-4 pt-4 border-top">
+        <h5 class="text-muted mb-3 font-monospace small">HERRAMIENTAS ADICIONALES</h5>
+        <div class="d-flex gap-3">
+            <button class="btn btn-outline-dark rounded-pill px-4" routerLink="/admin/reportes">
+                <i class="fas fa-chart-line me-2"></i>Reportes Rápidos
+            </button>
+            <button class="btn btn-outline-dark rounded-pill px-4" routerLink="/mensajes">
+                <i class="fas fa-comments me-2"></i>Mensajes de Soporte
+            </button>
+        </div>
+    </div>
+</div>

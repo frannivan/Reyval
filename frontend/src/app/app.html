@@ -1,0 +1,161 @@
+<!-- CONTENEDOR PRINCIPAL DE LA APLICACIÓN -->
+<div id="app">
+  
+  <!-- DISEÑO CON BARRA LATERAL (Admin, Vendedor, Recepción, etc.) -->
+  <ng-container *ngIf="showAdminBoard || showRecepcionBoard || showVendedorBoard || showContabilidadBoard || showDirectivoBoard || showClienteBoard; else publicLayout">
+    <div class="d-flex" id="wrapper" [class.toggled]="isSidebarToggled">
+      
+      <!-- Overlay para móvil -->
+      <div class="sidebar-overlay" (click)="toggleSidebar()"></div>
+
+      <!-- Componente Sidebar (Barra Lateral) -->
+      <app-sidebar [class.toggled]="isSidebarToggled" (navItemClicked)="isSidebarToggled = false"></app-sidebar>
+
+      <!-- Contenedor del Contenido de Página -->
+      <div id="page-content-wrapper" style="width: 100%;">
+        
+        <!-- Navbar Superior (Premium Look) -->
+        <nav class="navbar navbar-expand navbar-light bg-white border-bottom shadow-sm py-1 py-lg-2">
+          <div class="container-fluid px-2 px-lg-3">
+            <!-- Botón de Toggle para Móvil -->
+            <button class="btn btn-link d-lg-none me-2" (click)="toggleSidebar()">
+              <i class="fas fa-bars text-primary" style="font-size: 1.25rem;"></i>
+            </button>
+
+            <!-- Branding / Logo -->
+            <a href="#" class="navbar-brand ms-1 ms-lg-3 fw-bold text-primary text-truncate" style="max-width: 200px;" routerLink="home">
+              <i class="fas fa-home"></i> <span class="d-none d-md-inline">Casa Vida</span>
+            </a>
+
+            <!-- Menú de Usuario (Derecha) -->
+            <ul class="navbar-nav ms-auto me-3 align-items-center">
+              <li class="nav-item me-1 me-lg-3">
+                <!-- Etiqueta de Rol del Usuario - Oculta en móviles -->
+                <span class="badge bg-soft-primary text-primary border border-primary-soft d-none d-lg-inline-flex">
+                  <i class="fas fa-user-shield" *ngIf="showAdminBoard"></i>
+                  <i class="fas fa-user-tie" *ngIf="showVendedorBoard"></i>
+                  <i class="fas fa-concierge-bell" *ngIf="showRecepcionBoard"></i>
+                  <span class="ms-1">{{ username }}</span>
+                  <span class="text-muted fw-normal ms-1">({{ userRoleDisplay }})</span>
+                </span>
+              </li>
+
+              <!-- Dropdown de Perfil con Círculo de Iniciales (Avatar + Caret) -->
+              <li class="nav-item dropdown">
+                <a class="nav-link d-flex align-items-center dropdown-toggle-custom" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false" style="cursor: pointer;">
+                  <div class="avatar-sm bg-primary text-white rounded-circle d-flex align-items-center justify-content-center shadow-sm" style="width: 32px; height: 32px; font-weight: 600; font-size: 0.85rem;">
+                    {{ username?.substring(0,1)?.toUpperCase() }}
+                  </div>
+                  <div class="ms-2 d-none d-lg-block">
+                    <span class="fw-bold text-dark small">{{ username }}</span>
+                    <i class="fas fa-caret-down ms-1 text-muted" style="font-size: 0.7rem;"></i>
+                  </div>
+                  <i class="fas fa-caret-down ms-2 text-muted d-lg-none" style="font-size: 0.75rem;"></i>
+                </a>
+                <ul class="dropdown-menu dropdown-menu-end shadow border-0 animate-fade-in" style="border-radius: 12px; min-width: 200px;">
+                  <li class="dropdown-header text-muted small text-uppercase fw-bold pb-2">Mi Cuenta</li>
+                  <li><a class="dropdown-item py-2" routerLink="/profile"><i class="fas fa-user-circle me-2 text-primary"></i> Perfil Personal</a></li>
+                  <li><a class="dropdown-item py-2" [routerLink]="['/profile']" [queryParams]="{tab: 'pagos'}"><i class="fas fa-money-bill-wave me-2 text-success"></i> Mis Pagos</a></li>
+                  <li><a class="dropdown-item py-2" routerLink="/profile/security"><i class="fas fa-shield-alt me-2 text-warning"></i> Seguridad</a></li>
+                  <li>
+                    <a class="dropdown-item py-2 d-flex justify-content-between align-items-center" routerLink="/mensajes">
+                      <span><i class="fas fa-paper-plane me-2 text-info"></i> Mis Mensajes</span>
+                      <span *ngIf="unreadMessagesCount > 0" class="badge bg-danger rounded-pill">{{ unreadMessagesCount }}</span>
+                    </a>
+                  </li>
+                  <li><hr class="dropdown-divider"></li>
+                  <li><a class="dropdown-item py-2 text-danger fw-bold" style="cursor: pointer;" (click)="logout()"><i class="fas fa-power-off me-2"></i> Cerrar Sesión</a></li>
+                </ul>
+              </li>
+            </ul>
+          </div>
+        </nav>
+
+        <!-- Área de Contenido Dinámico (Admin) -->
+        <div class="container-fluid py-3">
+          <router-outlet></router-outlet>
+        </div>
+      </div>
+    </div>
+  </ng-container>
+
+  <!-- DISEÑO PÚBLICO / LOGIN (Sin Barra Lateral) -->
+  <ng-template #publicLayout>
+    <nav class="navbar navbar-expand-lg navbar-dark bg-dark shadow py-3">
+      <div class="container">
+        <!-- Logo Público -->
+        <a href="#" class="navbar-brand fw-bold fs-4" routerLink="/home">
+           <span class="text-primary">Casa</span> Vida
+        </a>
+        
+        <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarPublic">
+          <span class="navbar-toggler-icon"></span>
+        </button>
+        
+        <div class="collapse navbar-collapse" id="navbarPublic">
+          <ul class="navbar-nav me-auto mb-2 mb-lg-0">
+            <li class="nav-item">
+              <a class="nav-link" routerLink="/home" style="cursor: pointer;"><i class="fas fa-home me-1"></i> Inicio</a>
+            </li>
+            <li class="nav-item ms-lg-2">
+              <button class="btn btn-danger btn-sm px-3" (click)="logout()" *ngIf="isLoggedIn">
+                <i class="fas fa-sign-out-alt me-1"></i> Salir
+              </button>
+            </li>
+          </ul>
+
+          <ul class="navbar-nav ms-auto align-items-center">
+            <!-- Opciones si NO está logueado -->
+            <ng-container *ngIf="!isLoggedIn; else userLoggedIn">
+              <li class="nav-item">
+                <a class="nav-link" routerLink="/register" style="cursor: pointer;">Registrarse</a>
+              </li>
+              <li class="nav-item ms-lg-2">
+                <a class="btn btn-outline-light px-4" routerLink="/login">Ingresar</a>
+              </li>
+            </ng-container>
+
+            <!-- Opciones si SÍ está logueado -->
+            <ng-template #userLoggedIn>
+              
+              <li class="nav-item dropdown">
+                <a class="nav-link d-flex align-items-center dropdown-toggle-custom" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false" style="cursor: pointer;">
+                  <div class="avatar-sm bg-primary text-white rounded-circle d-flex align-items-center justify-content-center shadow-sm" style="width: 32px; height: 32px; font-weight: 600; font-size: 0.85rem;">
+                    {{ username?.substring(0,1)?.toUpperCase() }}
+                  </div>
+                  <div class="ms-2 d-none d-lg-block">
+                    <span class="fw-bold text-white small">{{ username }}</span>
+                    <i class="fas fa-caret-down ms-1 text-muted" style="font-size: 0.7rem;"></i>
+                  </div>
+                  <i class="fas fa-caret-down ms-2 text-muted d-lg-none" style="font-size: 0.75rem;"></i>
+                </a>
+                <ul class="dropdown-menu dropdown-menu-end shadow border-0 animate-fade-in" style="border-radius: 12px; min-width: 200px;">
+                  <li class="dropdown-header text-muted small text-uppercase fw-bold pb-2">Mi Cuenta</li>
+                  <li><a class="dropdown-item py-2" routerLink="/profile"><i class="fas fa-user-circle me-2 text-primary"></i> Perfil Personal</a></li>
+                  <li><a class="dropdown-item py-2" [routerLink]="['/profile']" [queryParams]="{tab: 'pagos'}"><i class="fas fa-money-bill-wave me-2 text-success"></i> Mis Pagos</a></li>
+                  <li><a class="dropdown-item py-2" routerLink="/profile/security"><i class="fas fa-shield-alt me-2 text-warning"></i> Seguridad</a></li>
+                  <li>
+                    <a class="dropdown-item py-2 d-flex justify-content-between align-items-center" routerLink="/mensajes">
+                      <span><i class="fas fa-paper-plane me-2 text-info"></i> Mis Mensajes</span>
+                      <span *ngIf="unreadMessagesCount > 0" class="badge bg-danger rounded-pill">{{ unreadMessagesCount }}</span>
+                    </a>
+                  </li>
+                  <li><hr class="dropdown-divider"></li>
+                  <li><a class="dropdown-item py-2 text-danger fw-bold" style="cursor: pointer;" (click)="logout()"><i class="fas fa-power-off me-2"></i> Cerrar Sesión</a></li>
+                </ul>
+              </li>
+            </ng-template>
+          </ul>
+        </div>
+      </div>
+    </nav>
+
+    <!-- Área de Contenido Dinámico (Público) -->
+    <div class="container mt-3">
+      <router-outlet></router-outlet>
+    </div>
+  </ng-template>
+
+  <!-- Componente Chatbot (Global) -->
+  <app-chatbot></app-chatbot>
+</div>

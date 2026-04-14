@@ -1,0 +1,101 @@
+<div class="permissions-container animate-fade-in">
+    <div class="header-section">
+        <div>
+            <h2 class="professional-title">Control de Accesos y Permisos</h2>
+            <p class="text-muted">Gestiona la visibilidad de menús y acciones de componentes por rol de usuario.</p>
+        </div>
+        <div class="header-actions">
+            <button class="refresh-btn" (click)="loadPermissions()" [disabled]="loading || saving">
+                <i class="fas fa-sync-alt" [class.fa-spin]="loading"></i> Actualizar
+            </button>
+            <button class="reset-btn" (click)="resetPermissions()" [disabled]="saving || loading">
+                <i class="fas fa-undo-alt me-1"></i> Restablecer Valores
+            </button>
+            <div class="status-indicator" [class.loading]="loading || saving">
+                <i class="fas" [class.fa-spinner]="loading || saving" [class.fa-spin]="loading || saving" [class.fa-check-circle]="!loading && !saving"></i>
+                {{ (loading || saving) ? 'Sincronizando...' : 'Sistema al día' }}
+            </div>
+        </div>
+    </div>
+
+    <div class="role-selector-bar">
+        @for (role of roles; track role) {
+            <button 
+                class="role-tab" 
+                [class.active]="selectedRole === role"
+                (click)="selectedRole = role">
+                {{ role.replace('ROLE_', '') }}
+            </button>
+        }
+    </div>
+
+    <div class="permissions-accordion">
+        @for (group of permissionGroups; track group.title) {
+            <div class="accordion-item" [class.active]="group.expanded">
+                <div class="accordion-header" (click)="toggleGroup(group)">
+                    <div class="group-title-container">
+                        <i [class]="group.icon"></i>
+                        <h3>{{ group.title }}</h3>
+                    </div>
+                    <i class="fas" [class.fa-chevron-down]="!group.expanded" [class.fa-chevron-up]="group.expanded"></i>
+                </div>
+                
+                <div class="accordion-body" [class.show]="group.expanded">
+                    @for (item of group.items; track item.key) {
+                        <div class="item-wrapper">
+                            <!-- Main Item Entry -->
+                            <div class="menu-entry-row">
+                                <div class="entry-info">
+                                    <i [class]="item.icon"></i>
+                                    <span class="entry-label">{{ item.label }}</span>
+                                </div>
+                                <div class="entry-controls">
+                                    <span class="status-badge" [class.enabled]="isPermissionEnabled(selectedRole, item.key)">
+                                        {{ isPermissionEnabled(selectedRole, item.key) ? 'Visible' : 'Oculto' }}
+                                    </span>
+                                    <label class="switch professional-switch" [class.disabled]="selectedRole === 'ROLE_ADMIN' && currentUserRole !== 'ROLE_DIRECTIVO'">
+                                        <input type="checkbox" 
+                                            [disabled]="selectedRole === 'ROLE_ADMIN' && currentUserRole !== 'ROLE_DIRECTIVO'"
+                                            [checked]="isPermissionEnabled(selectedRole, item.key)"
+                                            (change)="togglePermission(selectedRole, item.key)">
+                                        <span class="slider round"></span>
+                                    </label>
+                                </div>
+                            </div>
+
+                            <!-- Nested Actions -->
+                            @if (item.actions && item.actions.length > 0) {
+                                <div class="actions-list">
+                                    @for (action of item.actions; track action.key) {
+                                        <div class="action-entry-row">
+                                            <div class="action-info">
+                                                <i class="fas fa-level-up-alt fa-rotate-90 text-muted me-3"></i>
+                                                <span>{{ action.label }}</span>
+                                            </div>
+                                            <div class="action-controls">
+                                                <span class="mini-status">{{ isPermissionEnabled(selectedRole, action.key) ? 'Activo' : 'Inactivo' }}</span>
+                                                <label class="switch professional-switch mini" [class.disabled]="selectedRole === 'ROLE_ADMIN' && currentUserRole !== 'ROLE_DIRECTIVO'">
+                                                    <input type="checkbox" 
+                                                        [disabled]="selectedRole === 'ROLE_ADMIN' && currentUserRole !== 'ROLE_DIRECTIVO'"
+                                                        [checked]="isPermissionEnabled(selectedRole, action.key)"
+                                                        (change)="togglePermission(selectedRole, action.key)">
+                                                    <span class="slider round"></span>
+                                                </label>
+                                            </div>
+                                        </div>
+                                    }
+                                </div>
+                            }
+                        </div>
+                    }
+                </div>
+            </div>
+        }
+    </div>
+
+    <!-- TOAST FEEDBACK -->
+    <div *ngIf="message" class="professional-toast" [class.error]="message.includes('Error')">
+        <i class="fas" [class.fa-check-circle]="!message.includes('Error')" [class.fa-exclamation-triangle]="message.includes('Error')"></i>
+        {{ message }}
+    </div>
+</div>

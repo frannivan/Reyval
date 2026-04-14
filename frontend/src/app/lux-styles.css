@@ -1,0 +1,294 @@
+/* Lux Styles for Reyval - Professional & Elegant Theme */
+:root {
+    --primary: #6366f1;
+    --primary-glow: rgba(99, 102, 241, 0.4);
+    --secondary: #10b981;
+    --secondary-glow: rgba(16, 185, 129, 0.3);
+    --danger: #f43f5e;
+    --warning: #f59e0b;
+    --bg-deep: #030712;
+    --surface: rgba(15, 23, 42, 0.7);
+    --glass-border: rgba(255, 255, 255, 0.1);
+    --text-primary: #f8fafc;
+    --text-muted: #94a3b8;
+    --primary-gradient: linear-gradient(135deg, #6366f1 0%, #a855f7 100%);
+}
+
+body {
+    background-color: var(--bg-light);
+    font-family: 'Inter', 'Outfit', sans-serif;
+    color: var(--text-dark);
+}
+
+/* Modal - Professional (Brightened) */
+.modal-content {
+    background: #ffffff !important;
+    color: #1e293b !important;
+    border: none !important;
+    border-radius: 24px;
+    box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+    animation: slideInUp 0.3s ease-out;
+}
+
+.modal-header {
+    border-bottom: 1px solid #f1f5f9 !important;
+    background: #ffffff !important;
+    padding: 1.5rem;
+    border-radius: 24px 24px 0 0;
+}
+
+.modal-title {
+    color: #1e293b !important;
+    font-weight: 800;
+}
+
+/* Stats Cards in Dossier - Professional Look */
+.stat-card-lux {
+    background: #ffffff;
+    border: 1px solid #e2e8f0;
+    border-radius: 16px;
+    padding: 1.5rem;
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.stat-card-lux:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+}
+
+.dossier-stat-card {
+    background: #ffffff;
+    padding: 1.5rem;
+    border-radius: 16px;
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+    margin-bottom: 2rem;
+    transition: all 0.3s ease;
+    border: 1px solid #e2e8f0;
+}
+
+.dossier-stat-card:hover {
+    box-shadow: 0 10px 20px rgba(0,0,0,0.08);
+    transform: translateY(-3px);
+}
+
+.dossier-stat-value {
+    font-size: 1.75rem;
+    font-weight: 800;
+    margin-bottom: 0.25rem;
+    display: block;
+    color: #0f172a;
+}
+
+.dossier-stat-label {
+    font-size: 0.75rem;
+    color: #64748b;
+    text-transform: uppercase;
+    font-weight: 800;
+    letter-spacing: 0.05em;
+    display: flex;
+    align-items: center;
+}
+
+.dossier-stat-icon {
+    font-size: 1.1rem;
+    margin-right: 0.6rem;
+    opacity: 0.8;
+}
+
+.stat-border-gold { border-top: 6px solid var(--accent-gold); }
+.stat-border-blue { border-top: 6px solid #3b82f6; }
+.stat-border-green { border-top: 6px solid #10b981; }
+.stat-border-orange { border-top: 6px solid #f97316; }
+
+/* Profile Banner & Info */
+.profile-banner {
+    background: linear-gradient(to right, #ffffff, #f8fafc);
+    padding: 2.5rem;
+    border-radius: 24px;
+    border: 1px solid #e2e8f0;
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+    margin-bottom: 2.5rem !important;
+}
+
+.client-name-dossier {
+    font-size: 2rem;
+    font-weight: 800;
+    color: #0f172a;
+    letter-spacing: -0.02em;
+    line-height: 1.1;
+}
+
+.client-email-dossier {
+    font-size: 1rem;
+    color: #475569;
+    font-weight: 600;
+}
+
+/* Avatar Circle Fine Tuning */
+.avatar-circle-dossier {
+    background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
+    color: white;
+    width: 90px;
+    height: 90px;
+    font-size: 2.5rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 24px; /* More modern squircle-ish */
+    border: 4px solid white;
+    box-shadow: 0 10px 25px rgba(37, 99, 235, 0.2);
+    font-weight: 800;
+}
+
+/* Progress Premium */
+.progress-container-lux {
+    background: #ffffff;
+    padding: 2rem;
+    border-radius: 20px;
+    border: 1px solid #e2e8f0;
+    box-shadow: 0 4px 6px rgba(0,0,0,0.05);
+}
+
+.progress-lux-bar {
+    height: 16px;
+    border-radius: 10px;
+    background: #f1f5f9;
+    box-shadow: inset 0 2px 4px rgba(0,0,0,0.05);
+    overflow: hidden;
+}
+
+.progress-lux-fill {
+    height: 100%;
+    border-radius: 10px;
+    background: linear-gradient(90deg, #3b82f6, #60a5fa);
+    box-shadow: 0 2px 4px rgba(59, 130, 246, 0.3);
+    transition: width 1s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.modal-body-lux {
+    background-color: #f8fafc;
+}
+
+/* Tables */
+.table-lux {
+    background: white;
+    border-radius: 12px;
+}
+
+.table-lux thead th {
+    background-color: #f8fafc;
+    color: #64748b;
+    text-transform: uppercase;
+    font-size: 0.75rem;
+    font-weight: 700;
+    border: none;
+    padding: 1rem;
+}
+
+.table-lux tbody td {
+    padding: 1rem;
+    border-bottom: 1px solid #e2e8f0;
+    vertical-align: middle;
+    color: #334155;
+}
+
+/* Buttons */
+.btn-premium {
+    background: var(--primary-gradient);
+    color: white;
+    border: none;
+    border-radius: 8px;
+    font-weight: 600;
+    padding: 0.6rem 1.25rem;
+    transition: all 0.2s;
+}
+
+.btn-premium:hover {
+    filter: brightness(1.1);
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(99, 102, 241, 0.3);
+}
+
+/* Custom Dropdown Toggle (Caret Fix) */
+.dropdown-toggle-custom {
+    text-decoration: none !important;
+}
+
+.dropdown-toggle-custom::after {
+    display: none !important;
+}
+
+.dropdown-toggle-custom:hover i {
+    color: var(--primary) !important;
+}
+
+/* Contrast & Status Fixes */
+.badge-light, .bg-light {
+    color: #334155 !important; 
+    background-color: #f1f5f9 !important;
+}
+
+.text-primary {
+    color: var(--primary) !important;
+}
+
+.text-dark {
+    color: #0f172a !important;
+}
+
+.bg-success { background-color: #10b981 !important; color: white !important; }
+.bg-danger { background-color: #ef4444 !important; color: white !important; }
+.bg-warning { background-color: #f59e0b !important; color: #1e293b !important; }
+.bg-info { background-color: #0ea5e9 !important; color: white !important; }
+
+.badge-pill {
+    font-weight: 700;
+    text-transform: uppercase;
+    box-shadow: var(--shadow-sm);
+}
+
+/* Form Contrast */
+.form-control::placeholder {
+    color: #94a3b8;
+}
+
+.text-contrast-dark {
+    color: #0f172a !important;
+}
+
+@keyframes slideInUp {
+    from {
+        transform: translateY(20px);
+        opacity: 0;
+    }
+    to {
+        transform: translateY(0);
+        opacity: 1;
+    }
+}
+
+/* Print Styles */
+@media print {
+    body * {
+        visibility: hidden;
+    }
+    #print-section, #print-section * {
+        visibility: visible;
+    }
+    #print-section {
+        position: absolute;
+        left: 0;
+        top: 0;
+        width: 100%;
+    }
+    .modal {
+        display: none !important;
+    }
+    .modal-backdrop {
+        display: none !important;
+    }
+    .break-before {
+        page-break-before: always;
+    }
+}

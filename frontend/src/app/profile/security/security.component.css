@@ -1,0 +1,30 @@
+.card {
+  transition: transform 0.3s ease;
+}
+
+.input-group-text {
+  min-width: 45px;
+  justify-content: center;
+}
+
+.form-control:focus {
+  background-color: #f0f4ff !important;
+}
+
+.btn-primary {
+  background: linear-gradient(135deg, #0d6efd 0%, #0a58ca 100%);
+  border: none;
+}
+
+.btn-primary:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(13, 110, 253, 0.3);
+}
+
+.bg-soft-primary {
+  background-color: rgba(13, 110, 253, 0.1);
+}
+
+hr.opacity-10 {
+  opacity: 0.1;
+}

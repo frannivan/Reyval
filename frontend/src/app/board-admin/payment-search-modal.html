@@ -1,0 +1,71 @@
+<!-- Payment Search Modal -->
+<div class="modal-backdrop fade show" *ngIf="showPaymentSearchModal"></div>
+<div class="modal fade show" tabindex="-1" role="dialog" [style.display]="showPaymentSearchModal ? 'block' : 'none'"
+    *ngIf="showPaymentSearchModal">
+    <div class="modal-dialog modal-xl" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Consulta General de Pagos</h5>
+                <button type="button" class="close" (click)="showPaymentSearchModal = false">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <!-- Search Input -->
+                <div class="input-group mb-3">
+                    <input type="text" class="form-control" placeholder="Buscar por Cliente, Referencia o Concepto..."
+                        [(ngModel)]="paymentSearchTerm" (keyup.enter)="searchPayments()">
+                    <div class="input-group-append">
+                        <button class="btn btn-primary" type="button" (click)="searchPayments()">
+                            <i class="fas fa-search"></i> Buscar
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Results Table -->
+                <div class="table-responsive" style="max-height: 500px; overflow-y: auto;">
+                    <table class="table table-striped table-hover">
+                        <thead class="thead-dark">
+                            <tr>
+                                <th>Fecha</th>
+                                <th>Cliente</th>
+                                <th>Lote</th>
+                                <th>Concepto</th>
+                                <th>Referencia</th>
+                                <th>Monto</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr *ngFor="let p of foundPayments">
+                                <td>{{ p.fechaPago | date:'shortDate' }}</td>
+                                <td>
+                                    <span *ngIf="p.contrato?.cliente">
+                                        {{ p.contrato.cliente.nombre }} {{ p.contrato.cliente.apellidos }}
+                                    </span>
+                                    <span *ngIf="!p.contrato?.cliente" class="text-muted">N/A</span>
+                                </td>
+                                <td>
+                                    <span *ngIf="p.contrato?.lote">
+                                        {{ p.contrato.lote.numeroLote }} ({{ p.contrato.lote.fraccionamiento?.nombre }})
+                                    </span>
+                                    <span *ngIf="!p.contrato?.lote" class="text-muted">N/A</span>
+                                </td>
+                                <td>{{ p.concepto }}</td>
+                                <td>{{ p.referencia }}</td>
+                                <td class="font-weight-bold text-success">{{ p.monto | currency:'MXN' }}</td>
+                            </tr>
+                            <tr *ngIf="foundPayments.length === 0">
+                                <td colspan="6" class="text-center py-4">
+                                    <span class="text-muted">No se encontraron pagos con ese criterio.</span>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" (click)="showPaymentSearchModal = false">Cerrar</button>
+            </div>
+        </div>
+    </div>
+</div>

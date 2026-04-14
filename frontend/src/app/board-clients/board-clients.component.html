@@ -1,0 +1,137 @@
+<div class="container mt-4">
+    <div class="card">
+        <div class="card-header bg-info text-white d-flex justify-content-between align-items-center">
+            <h4 class="mb-0">Directorio de Clientes</h4>
+            <button class="btn btn-light btn-sm" (click)="openClientModal()">
+                <i class="fa fa-plus"></i> Nuevo Cliente
+            </button>
+        </div>
+        <div class="card-body">
+            <!-- Search Bar -->
+            <div class="input-group mb-3">
+                <div class="input-group-prepend">
+                    <span class="input-group-text"><i class="fa fa-search"></i></span>
+                </div>
+                <input type="text" class="form-control" placeholder="Buscar por nombre, email o teléfono..."
+                    [(ngModel)]="searchTerm">
+            </div>
+
+            <div *ngIf="filteredClientes.length === 0" class="alert alert-light border shadow-sm text-center py-4">
+                <i class="fa fa-users fa-2x mb-2 text-muted opacity-20"></i>
+                <p class="mb-0">No se encontraron clientes que coincidan con la búsqueda.</p>
+            </div>
+            
+            <div class="table-responsive rounded-xl overflow-hidden border shadow-sm" *ngIf="filteredClientes.length > 0">
+                <table class="table table-hover table-lux mb-0">
+                    <thead>
+                        <tr>
+                            <th style="color: #4b5563 !important;">Nombre Completo</th>
+                            <th style="color: #4b5563 !important;">Contacto</th>
+                            <th style="color: #4b5563 !important;">Identificación</th>
+                            <th class="text-right" style="color: #4b5563 !important;">Acciones</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr *ngFor="let c of filteredClientes" (click)="openDossier(c)" style="cursor: pointer;">
+                            <td>
+                                <div class="d-flex align-items-center">
+                                    <div class="avatar-small mr-3 bg-light text-primary font-weight-bold rounded-circle d-flex align-items-center justify-content-center" style="width: 35px; height: 35px; font-size: 0.8rem; border: 1px solid #e2e8f0;">
+                                        {{ (c.nombre[0] || '') + (c.apellidos[0] || '') }}
+                                    </div>
+                                    <div>
+                                        <div class="font-weight-bold" style="color: #1e293b !important;">{{ c.nombre }} {{ c.apellidos }}</div>
+                                        <div class="small text-muted">Registrado: {{ c.fechaRegistro | date:'shortDate' }}</div>
+                                    </div>
+                                </div>
+                            </td>
+                            <td>
+                                <div class="small" style="color: #1e293b !important;"><i class="fa fa-envelope-o mr-1 text-muted"></i> {{ c.email }}</div>
+                                <div class="small" style="color: #1e293b !important;"><i class="fa fa-phone mr-1 text-muted"></i> {{ c.telefono }}</div>
+                            </td>
+                            <td>
+                                <span class="badge badge-light border font-weight-bold px-2 py-1" style="color: #1e293b !important; background-color: #f1f5f9 !important;">{{ c.ine || 'Sin INE' }}</span>
+                            </td>
+                            <td class="text-right" (click)="$event.stopPropagation()">
+                                <button class="btn btn-sm btn-light border mr-1 rounded-pill px-3 shadow-sm" (click)="openDossier(c)">
+                                    <i class="fa fa-folder-open text-primary mr-1"></i> Expediente
+                                </button>
+                                <button class="btn btn-sm btn-light border rounded-pill px-3 shadow-sm" (click)="openClientModal(c)">
+                                    <i class="fa fa-edit text-warning mr-1"></i> Editar
+                                </button>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <!-- Client Modal (Premium Redesign) -->
+    <div class="modal-backdrop fade show" *ngIf="showClientModal"></div>
+    <div class="modal fade show" tabindex="-1" role="dialog" [style.display]="showClientModal ? 'block' : 'none'"
+        *ngIf="showClientModal">
+        <div class="modal-dialog modal-dialog-centered" role="document">
+            <div class="modal-content border-0 shadow-lg">
+                <div class="modal-header bg-white border-bottom py-3">
+                    <h5 class="modal-title font-weight-bold">
+                        <i class="fa fa-user-plus mr-2 text-primary"></i>
+                        {{ isEditingClient ? 'Actualizar Información' : 'Nuevo Registro de Cliente' }}
+                    </h5>
+                    <button type="button" class="close" (click)="showClientModal = false">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                <div class="modal-body p-4">
+                    <div *ngIf="clientSuccessMsg" class="alert alert-success border-0 shadow-sm">{{ clientSuccessMsg }}</div>
+                    <div *ngIf="clientErrorMsg" class="alert alert-danger border-0 shadow-sm">{{ clientErrorMsg }}</div>
+                    
+                    <form (ngSubmit)="submitClient()" #clientForm="ngForm">
+                        <div class="form-row mb-3">
+                            <div class="form-group col-md-6">
+                                <label class="small font-weight-bold text-muted text-uppercase">Nombre(s)</label>
+                                <input type="text" class="form-control border-0 bg-light shadow-sm" [(ngModel)]="clientData.nombre" name="nombre" required placeholder="Ej. Juan">
+                            </div>
+                            <div class="form-group col-md-6">
+                                <label class="small font-weight-bold text-muted text-uppercase">Apellidos</label>
+                                <input type="text" class="form-control border-0 bg-light shadow-sm" [(ngModel)]="clientData.apellidos" name="apellidos" required placeholder="Ej. Pérez">
+                            </div>
+                        </div>
+
+                        <div class="form-row mb-3">
+                            <div class="form-group col-md-6">
+                                <label class="small font-weight-bold text-muted text-uppercase">Email</label>
+                                <input type="email" class="form-control border-0 bg-light shadow-sm" [(ngModel)]="clientData.email" name="email" required placeholder="correo@ejemplo.com">
+                            </div>
+                            <div class="form-group col-md-6">
+                                <label class="small font-weight-bold text-muted text-uppercase">Teléfono</label>
+                                <input type="text" class="form-control border-0 bg-light shadow-sm" [(ngModel)]="clientData.telefono" name="telefono" required placeholder="10 dígitos">
+                            </div>
+                        </div>
+
+                        <div class="form-group mb-3">
+                            <label class="small font-weight-bold text-muted text-uppercase">Dirección Completa</label>
+                            <input type="text" class="form-control border-0 bg-light shadow-sm" [(ngModel)]="clientData.direccion" name="direccion" placeholder="Calle, Número, Colonia, CP...">
+                        </div>
+
+                        <div class="form-group mb-4">
+                            <label class="small font-weight-bold text-muted text-uppercase">INE / Identificación Oficial</label>
+                            <input type="text" class="form-control border-0 bg-light shadow-sm" [(ngModel)]="clientData.ine" name="ine" placeholder="Clave de elector o ID">
+                        </div>
+
+                        <div class="d-flex justify-content-end pt-3">
+                            <button type="button" class="btn btn-light rounded-pill px-4 mr-2 border" (click)="showClientModal = false">Cancelar</button>
+                            <button type="submit" class="btn btn-premium rounded-pill px-5 shadow font-weight-bold">
+                                {{ isEditingClient ? 'Guardar Cambios' : 'Registrar Cliente' }}
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Dossier Component -->
+    <app-client-dossier [show]="showDossier" [cliente]="selectedClientForDossier" (closeEvent)="closeDossier()"
+        (editEvent)="openClientModal(selectedClientForDossier); closeDossier()">
+    </app-client-dossier>
+</div>

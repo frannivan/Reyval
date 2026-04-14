@@ -1,0 +1,85 @@
+.fracc-header {
+    background-color: #f8f9fa;
+    padding: 2rem;
+    border-radius: 8px;
+    margin-bottom: 2rem;
+}
+
+.fracc-logo {
+    max-height: 200px;
+    max-width: 100%;
+    border-radius: 8px;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
+
+.lote-card {
+    transition: transform 0.2s;
+    cursor: pointer;
+}
+
+.lote-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+}
+
+.lote-img {
+    height: 200px;
+    object-fit: cover;
+}
+
+.grid-container {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+    gap: 20px;
+}
+
+/* Custom Floating Tooltip for SVG */
+.lote-tooltip-custom {
+    position: fixed;
+    z-index: 9999;
+    padding: 10px 15px;
+    background: rgba(30, 34, 40, 0.85);
+    color: white;
+    border-radius: 8px;
+    font-size: 0.85rem;
+    pointer-events: none;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.3);
+    border: 1px solid rgba(255,255,255,0.1);
+    transition: opacity 0.15s ease-out;
+    backdrop-filter: blur(4px);
+}
+
+.lote-tooltip-custom strong {
+    display: block;
+    font-size: 1rem;
+    margin-bottom: 2px;
+    border-bottom: 1px solid rgba(255,255,255,0.2);
+    padding-bottom: 2px;
+}
+
+.lote-tooltip-custom .status-dot {
+    display: inline-block;
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    margin-right: 5px;
+}
+
+/* Lote Status Badges (Match SVG) */
+.badge-lote-disponible {
+    background-color: #dcfce7;
+    color: #15803d;
+    border: 1px solid #bbf7d0;
+}
+
+.badge-lote-apartado {
+    background-color: #007bff;
+    color: white;
+    border: 1px solid #0056b3;
+}
+
+.badge-lote-vendido {
+    background-color: #8B4513;
+    color: white;
+    border: 1px solid #5D2E0A;
+}

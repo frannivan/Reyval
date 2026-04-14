@@ -1,0 +1,174 @@
+<div class="container-fluid mt-4">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h2 class="text-primary font-weight-bold"><i class="fas fa-chart-line mr-2"></i>Reportes Dinámicos</h2>
+        <div *ngIf="filteredData.length > 0" class="btn-group shadow-sm">
+            <button class="btn btn-outline-success border-right-0" (click)="exportReport('excel')" title="Exportar a Excel">
+                <i class="fas fa-file-excel mr-1"></i> Excel
+            </button>
+            <button class="btn btn-outline-danger" (click)="exportReport('pdf')" title="Exportar a PDF">
+                <i class="fas fa-file-pdf mr-1"></i> PDF
+            </button>
+        </div>
+    </div>
+
+    <!-- Filter Bar -->
+    <div class="card mb-4 shadow-sm border-0">
+        <div class="card-body">
+            <div class="row align-items-end">
+                <div class="col-md-3 mb-3">
+                    <label class="small font-weight-bold text-muted">TIPO DE REPORTE</label>
+                    <select class="form-control" [(ngModel)]="reportType" (change)="onReportTypeChange()">
+                        <option value="" disabled>Seleccione reporte...</option>
+                        <option value="usuarios">Usuarios Registrados</option>
+                        <option value="pagos">Historial de Pagos</option>
+                        <option value="inventario">Inventario Disponible</option>
+                    </select>
+                </div>
+
+                <ng-container *ngIf="reportType === 'usuarios' || reportType === 'pagos'">
+                    <div class="col-md-2 mb-3">
+                        <label class="small font-weight-bold text-muted">DESDE</label>
+                        <input type="date" class="form-control" [(ngModel)]="startDate">
+                    </div>
+                    <div class="col-md-2 mb-3">
+                        <label class="small font-weight-bold text-muted">HASTA</label>
+                        <input type="date" class="form-control" [(ngModel)]="endDate">
+                    </div>
+                </ng-container>
+
+                <div class="col-md-3 mb-3" *ngIf="reportType === 'pagos'">
+                    <label class="small font-weight-bold text-muted">FILTRAR POR</label>
+                    <div class="input-group">
+                        <select class="form-control" [(ngModel)]="filterType" (change)="filterId = null">
+                            <option value="">Todo</option>
+                            <option value="usuario">Cliente</option>
+                            <option value="fraccionamiento">Fraccionamiento</option>
+                            <option value="vendedor">Vendedor</option>
+                            <option value="lote">Lote #</option>
+                        </select>
+                        
+                        <select *ngIf="filterType === 'usuario'" class="form-control" [(ngModel)]="filterId">
+                            <option [ngValue]="null">Seleccione cliente...</option>
+                            <option *ngFor="let c of clientes" [value]="c.id">{{ c.nombre }} {{ c.apellidos }}</option>
+                        </select>
+
+                        <select *ngIf="filterType === 'fraccionamiento'" class="form-control" [(ngModel)]="filterId">
+                            <option [ngValue]="null">Seleccione fraccionamiento...</option>
+                            <option *ngFor="let f of fraccionamientos" [value]="f.id">{{ f.nombre }}</option>
+                        </select>
+
+                        <select *ngIf="filterType === 'vendedor'" class="form-control" [(ngModel)]="filterId">
+                            <option [ngValue]="null">Seleccione vendedor...</option>
+                            <option *ngFor="let v of vendedores" [value]="v.id">{{ v.username }}</option>
+                        </select>
+
+                        <input *ngIf="filterType === 'lote' || (filterType !== 'usuario' && filterType !== 'fraccionamiento' && filterType !== 'vendedor' && filterType !== '')" 
+                               type="number" class="form-control" [(ngModel)]="filterId" placeholder="ID...">
+                    </div>
+                </div>
+
+                <div class="col mb-3 text-right">
+                    <button class="btn btn-primary px-4 rounded-pill" (click)="generateReport()" [disabled]="!reportType || isLoading">
+                        <i class="fas fa-sync-alt mr-1" [class.fa-spin]="isLoading"></i>
+                        {{ isLoading ? 'Generando...' : 'Generar Reporte' }}
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Results -->
+    <div *ngIf="errorMsg" class="alert alert-danger">{{ errorMsg }}</div>
+
+    <div class="card shadow-sm border-0 animated fadeIn" *ngIf="reportData.length > 0">
+        <div class="card-header bg-white py-3 border-0">
+            <div class="row align-items-center">
+                <div class="col">
+                    <h5 class="mb-0 text-dark">Resultados ({{ filteredData.length }})</h5>
+                </div>
+                <div class="col-md-4">
+                    <div class="input-group input-group-sm">
+                        <div class="input-group-prepend">
+                            <span class="input-group-text bg-light border-0"><i class="fas fa-search"></i></span>
+                        </div>
+                        <input type="text" class="form-control bg-light border-0" placeholder="Filtrar en tabla..." 
+                               [(ngModel)]="searchTerm" (ngModelChange)="applyFilters()">
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="card-body p-0">
+            <div class="table-responsive">
+                <table class="table table-hover mb-0">
+                    <thead class="bg-light text-muted small text-uppercase">
+                        <tr *ngIf="reportType === 'usuarios'">
+                            <th (click)="sort('id')" style="cursor:pointer">ID <i class="fas fa-sort ml-1"></i></th>
+                            <th (click)="sort('username')" style="cursor:pointer">Usuario <i class="fas fa-sort ml-1"></i></th>
+                            <th (click)="sort('email')" style="cursor:pointer">Email <i class="fas fa-sort ml-1"></i></th>
+                            <th (click)="sort('role')" style="cursor:pointer">Rol <i class="fas fa-sort ml-1"></i></th>
+                            <th (click)="sort('createdAt')" style="cursor:pointer">Fecha Registro <i class="fas fa-sort ml-1"></i></th>
+                        </tr>
+                        <tr *ngIf="reportType === 'pagos'">
+                            <th (click)="sort('fechaPago')" style="cursor:pointer">Fecha <i class="fas fa-sort ml-1"></i></th>
+                            <th (click)="sort('monto')" style="cursor:pointer">Monto <i class="fas fa-sort ml-1"></i></th>
+                            <th>Concepto</th>
+                            <th>Metodo</th>
+                            <th>Referencia</th>
+                            <th>Lote</th>
+                        </tr>
+                        <tr *ngIf="reportType === 'inventario'">
+                            <th (click)="sort('numeroLote')" style="cursor:pointer">Lote <i class="fas fa-sort ml-1"></i></th>
+                            <th (click)="sort('manzana')" style="cursor:pointer">Manzana <i class="fas fa-sort ml-1"></i></th>
+                            <th (click)="sort('fraccionamiento.nombre')" style="cursor:pointer">Fraccionamiento <i class="fas fa-sort ml-1"></i></th>
+                            <th (click)="sort('precioTotal')" style="cursor:pointer">Precio <i class="fas fa-sort ml-1"></i></th>
+                            <th (click)="sort('areaMetrosCuadrados')" style="cursor:pointer">Área <i class="fas fa-sort ml-1"></i></th>
+                            <th (click)="sort('estatus')" style="cursor:pointer">Estatus <i class="fas fa-sort ml-1"></i></th>
+                        </tr>
+                    </thead>
+                    <tbody class="text-dark">
+                        <!-- Usuarios -->
+                        <ng-container *ngIf="reportType === 'usuarios'">
+                            <tr *ngFor="let item of filteredData">
+                                <td>{{ item.id }}</td>
+                                <td><strong>{{ item.username }}</strong></td>
+                                <td>{{ item.email }}</td>
+                                <td><span class="badge badge-info">{{ item.role }}</span></td>
+                                <td>{{ item.createdAt | date:'short' }}</td>
+                            </tr>
+                        </ng-container>
+
+                        <!-- Pagos -->
+                        <ng-container *ngIf="reportType === 'pagos'">
+                            <tr *ngFor="let item of filteredData">
+                                <td>{{ item.fechaPago | date:'shortDate' }}</td>
+                                <td class="font-weight-bold text-success">{{ item.monto | currency:'MXN' }}</td>
+                                <td>{{ item.concepto }}</td>
+                                <td>{{ item.metodoPago }}</td>
+                                <td class="small">{{ item.referencia }}</td>
+                                <td><span class="badge badge-light">Lote {{ item.contrato?.lote?.numeroLote }}</span></td>
+                            </tr>
+                        </ng-container>
+
+                        <!-- Inventario -->
+                        <ng-container *ngIf="reportType === 'inventario'">
+                            <tr *ngFor="let item of filteredData">
+                                <td><strong>Lote {{ item.numeroLote }}</strong></td>
+                                <td>{{ item.manzana }}</td>
+                                <td>{{ item.fraccionamiento?.nombre }}</td>
+                                <td>{{ item.precioTotal | currency:'MXN' }}</td>
+                                <td>{{ item.areaMetrosCuadrados }} m²</td>
+                                <td><span class="badge-status badge-status-active">{{ item.estatus }}</span></td>
+                            </tr>
+                        </ng-container>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <!-- Empty State -->
+    <div *ngIf="!isLoading && reportData.length === 0 && reportType" class="text-center py-5">
+        <i class="fas fa-folder-open fa-3x text-muted mb-3"></i>
+        <p class="text-muted">No se encontraron resultados para los filtros seleccionados.</p>
+    </div>
+</div>

@@ -1,0 +1,161 @@
+<div class="container mt-4">
+    <div class="card shadow-sm border-0">
+        <div class="card-header bg-dark text-white d-flex justify-content-between align-items-center py-3">
+            <h5 class="mb-0">
+                <i class="fas fa-clipboard-check me-2 text-info"></i>Validación de Pagos
+                <span class="badge bg-warning text-dark ms-2" *ngIf="pendingCount > 0">{{ pendingCount }} pendientes</span>
+            </h5>
+            <button class="btn btn-sm btn-outline-light rounded-pill px-3" (click)="loadPagos()">
+                <i class="fas fa-sync-alt me-1"></i> Actualizar
+            </button>
+        </div>
+        <div class="card-body">
+            <!-- Filter Controls -->
+            <div class="row mb-3 align-items-center">
+                <div class="col-md-6 mb-2">
+                    <div class="input-group">
+                        <span class="input-group-text bg-white border-end-0 text-muted"><i class="fas fa-search"></i></span>
+                        <input type="text" class="form-control border-start-0" placeholder="Buscar por referencia o concepto..." [(ngModel)]="searchTerm"
+                            (input)="filterPagos()">
+                    </div>
+                </div>
+                <div class="col-md-6 mb-2">
+                    <div class="input-group">
+                        <span class="input-group-text bg-white border-end-0 text-muted"><i class="fas fa-filter"></i></span>
+                        <select class="form-select border-start-0" [(ngModel)]="statusFilter" (change)="filterPagos()">
+                            <option value="ALL">Todos los estatus</option>
+                            <option value="PENDIENTE">Sólo Pendientes</option>
+                            <option value="VALIDADO">Validados</option>
+                            <option value="RECHAZADO">Rechazados</option>
+                        </select>
+                    </div>
+                </div>
+            </div>
+
+            <div *ngIf="message" class="alert alert-info">{{ message }}</div>
+
+            <!-- Table -->
+            <div class="table-responsive">
+                <table class="table table-striped table-hover align-middle">
+                    <thead class="table-dark">
+                        <tr>
+                            <th>Fecha</th>
+                            <th>Cliente</th>
+                            <th>Desarrollo / Lote</th>
+                            <th>Monto</th>
+                            <th>Referencia</th>
+                            <th>Concepto</th>
+                            <th>Comprobante</th>
+                            <th>Estatus</th>
+                            <th>Acción</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr *ngFor="let pago of filteredPagos">
+                            <td>{{ pago.fechaPago | date:'dd/MM/yyyy' }}</td>
+                            <td>
+                                <span class="fw-bold d-block">{{ pago.contrato?.cliente?.nombre }} {{ pago.contrato?.cliente?.apellidoPaterno }}</span>
+                                <span class="text-muted small">Contrato #{{ pago.contratoId }}</span>
+                            </td>
+                            <td>
+                                <span class="text-muted small">{{ pago.contrato?.lote?.fraccionamiento?.nombre }}</span><br>
+                                <span class="badge bg-light text-dark">Lote {{ pago.contrato?.lote?.numeroLote }}</span>
+                            </td>
+                            <td class="fw-bold text-success">{{ pago.monto | currency:'MXN' }}</td>
+                            <td><code>{{ pago.referencia || '—' }}</code></td>
+                            <td>{{ pago.concepto || '—' }}</td>
+                            <td>
+                                <button *ngIf="pago.comprobanteUrl" (click)="openModal(pago.comprobanteUrl)" 
+                                   class="btn btn-sm btn-outline-info rounded-pill">
+                                    <i class="fas fa-eye me-1"></i>Ver Evidencia
+                                </button>
+                                <span *ngIf="!pago.comprobanteUrl" class="text-warning small italic">
+                                    <i class="fas fa-exclamation-triangle me-1"></i>Sin archivo
+                                </span>
+                            </td>
+                            <td>
+                                <span class="badge rounded-pill px-3 py-2" [ngClass]="{
+                                    'bg-success': pago.estatus === 'VALIDADO',
+                                    'bg-warning text-dark': !pago.estatus || pago.estatus === 'PENDIENTE',
+                                    'bg-danger': pago.estatus === 'RECHAZADO'
+                                }">
+                                    <i class="fas me-1" [ngClass]="{
+                                        'fa-check-circle': pago.estatus === 'VALIDADO',
+                                        'fa-clock': !pago.estatus || pago.estatus === 'PENDIENTE',
+                                        'fa-times-circle': pago.estatus === 'RECHAZADO'
+                                    }"></i>
+                                    {{ (pago.estatus || 'PENDIENTE') | uppercase }}
+                                </span>
+                            </td>
+                            <td>
+                                <ng-container *ngIf="!pago.estatus || pago.estatus === 'PENDIENTE'">
+                                    <div class="btn-group">
+                                        <button *ngIf="permissionService.hasPermission('action:pago:validate')" 
+                                                class="btn btn-sm btn-success" 
+                                                (click)="validatePayment(pago.id)"
+                                                title="Aprobar pago">
+                                            <i class="fas fa-check"></i>
+                                        </button>
+                                        <button *ngIf="permissionService.hasPermission('action:pago:validate')" 
+                                                class="btn btn-sm btn-danger" 
+                                                (click)="rejectPayment(pago.id)"
+                                                title="Rechazar pago">
+                                            <i class="fas fa-times"></i>
+                                        </button>
+                                    </div>
+                                </ng-container>
+                                <div *ngIf="pago.estatus && pago.estatus !== 'PENDIENTE'" class="text-muted small">
+                                    <div *ngIf="pago.validadoPor" class="text-nowrap">
+                                        <i class="fas fa-user-check me-1"></i>{{ pago.validadoPor }}
+                                    </div>
+                                </div>
+                            </td>
+                        </tr>
+                        <tr *ngIf="filteredPagos.length === 0">
+                            <td colspan="9" class="text-center py-5 text-muted">
+                                <i class="fas fa-search fa-3x mb-3 opacity-25"></i>
+                                <p>No se encontraron pagos con los filtros seleccionados.</p>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <!-- Comprobante Preview Modal -->
+    <div class="modal-backdrop fade show" *ngIf="showModal"></div>
+    <div class="modal fade show" tabindex="-1" role="dialog" [style.display]="showModal ? 'block' : 'none'" *ngIf="showModal">
+        <div class="modal-dialog modal-lg modal-dialog-centered" role="document">
+            <div class="modal-content shadow-lg border-0 overflow-hidden">
+                <div class="modal-header bg-dark text-white border-0">
+                    <h5 class="modal-title font-monospace"><i class="fas fa-file-invoice me-2"></i>EVIDENCIA DE PAGO</h5>
+                    <button type="button" class="btn-close btn-close-white" (click)="closeModal()"></button>
+                </div>
+                <div class="modal-body p-0 text-center bg-light" style="min-height: 400px; display: flex; align-items: center; justify-content: center;">
+                    <!-- Image Preview -->
+                    <img *ngIf="selectedComprobante && (selectedComprobante.toLowerCase().endsWith('.jpg') || selectedComprobante.toLowerCase().endsWith('.png') || selectedComprobante.toLowerCase().endsWith('.jpeg'))" 
+                         [src]="getImageUrl(selectedComprobante)" class="img-fluid" alt="Comprobante de pago" style="max-height: 80vh;">
+                    
+                    <!-- PDF Preview (using iframe) -->
+                    <iframe *ngIf="selectedComprobante && selectedComprobante.toLowerCase().endsWith('.pdf')" 
+                           [src]="getImageUrl(selectedComprobante) | safeUrl:'resourceUrl'" width="100%" height="600px" frameborder="0"></iframe>
+
+                    <!-- Fallback download link if not an image/pdf -->
+                    <div *ngIf="selectedComprobante && !selectedComprobante.toLowerCase().endsWith('.jpg') && !selectedComprobante.toLowerCase().endsWith('.png') && !selectedComprobante.toLowerCase().endsWith('.jpeg') && !selectedComprobante.toLowerCase().endsWith('.pdf')"
+                         class="p-5">
+                         <i class="fas fa-file-download fa-4x text-muted mb-3"></i>
+                         <h5>El archivo no se puede previsualizar</h5>
+                         <a [href]="getImageUrl(selectedComprobante)" target="_blank" class="btn btn-primary mt-3 px-4 rounded-pill">Descargar archivo</a>
+                    </div>
+                </div>
+                <div class="modal-footer bg-white border-0 px-4 py-3">
+                    <a [href]="getImageUrl(selectedComprobante)" target="_blank" class="btn btn-link text-decoration-none">
+                        <i class="fas fa-external-link-alt me-1"></i> Abrir en pestaña nueva
+                    </a>
+                    <button type="button" class="btn btn-dark px-5 rounded-pill" (click)="closeModal()">Cerrar</button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

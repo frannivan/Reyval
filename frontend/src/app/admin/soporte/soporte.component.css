@@ -1,0 +1,100 @@
+.dark-bg {
+    background: #0a0a0c;
+    color: #e0e0e0;
+}
+
+.glass-card {
+    background: rgba(30, 30, 35, 0.7);
+    backdrop-filter: blur(10px);
+    border: 1px solid rgba(255,255,255,0.05);
+    border-radius: 12px;
+}
+
+.bg-dark-accent {
+    background: rgba(20, 20, 25, 0.8);
+}
+
+.pointer {
+    cursor: pointer;
+}
+
+.table-hover tbody tr:hover {
+    background: rgba(255,255,255,0.03);
+}
+
+.table-active {
+    background: rgba(0, 123, 255, 0.1) !important;
+    border-left: 4px solid #007bff;
+}
+
+.comment-bubble {
+    background: rgba(255,255,255,0.05);
+    padding: 10px 15px;
+    border-radius: 8px;
+    font-size: 0.9rem;
+    border-left: 3px solid #007bff;
+}
+
+.border-primary-glow {
+    box-shadow: 0 0 15px rgba(0, 123, 255, 0.1);
+}
+
+.btn-xs {
+    padding: 2px 8px;
+    font-size: 0.75rem;
+}
+
+.bg-black-25 {
+    background: rgba(0,0,0,0.25);
+}
+
+.evidence-img-container img {
+    cursor: zoom-in;
+    transition: transform 0.2s;
+}
+
+.evidence-img-container img:hover {
+    transform: scale(1.02);
+}
+
+.animate-fade-in {
+    animation: fadeIn 0.5s ease;
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateY(-5px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+/* Forzar legibilidad en labels y textos mudos en fondo oscuro */
+.text-muted {
+    color: #a0a0a0 !important;
+}
+
+.form-label {
+    margin-bottom: 0.5rem;
+    letter-spacing: 0.5px;
+}
+
+input::placeholder, textarea::placeholder {
+    color: rgba(255,255,255,0.4) !important;
+}
+
+.modal-content {
+    box-shadow: 0 0 30px rgba(0,0,0,0.5);
+}
+
+/* Scrollbar styling */
+::-webkit-scrollbar {
+    width: 6px;
+}
+::-webkit-scrollbar-track {
+    background: rgba(0,0,0,0.1);
+}
+::-webkit-scrollbar-thumb {
+    background: rgba(255,255,255,0.1);
+    border-radius: 10px;
+}
+::-webkit-scrollbar-thumb:hover {
+    background: rgba(255,255,255,0.2);
+}

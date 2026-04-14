@@ -1,0 +1,124 @@
+<div class="dossier-overlay" (click)="close()">
+    <div class="dossier-card shadow-lg animate-slide-in-right" (click)="$event.stopPropagation()">
+        <!-- Header -->
+        <div class="dossier-header d-flex justify-content-between align-items-center">
+            <div>
+                <h4 class="mb-0 fw-bold text-white">{{ lead?.nombre }}</h4>
+                <span class="badge bg-light text-primary mt-1">{{ lead?.source || 'WEB' }}</span>
+            </div>
+            <button class="btn-close btn-close-white" (click)="close()"></button>
+        </div>
+
+        <div class="dossier-body">
+            <!-- Timeline (Salesforce Style) -->
+            <div class="timeline-container mb-4">
+                <div class="timeline-path">
+                    <div class="timeline-step" *ngFor="let s of statuses" 
+                         [class.completed]="isCompleted(s.key)" 
+                         [class.active]="isActive(s.key)">
+                        <div class="step-circle">
+                            <i class="fas fa-check" *ngIf="isCompleted(s.key)"></i>
+                            <span *ngIf="!isCompleted(s.key)">{{ statuses.indexOf(s) + 1 }}</span>
+                        </div>
+                        <div class="step-label">{{ s.label }}</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Main Actions Grid -->
+            <div class="actions-grid mb-4">
+                <button class="action-btn wa" (click)="emitAction('whatsapp')">
+                    <i class="fab fa-whatsapp"></i>
+                    <span>Contactar WhatsApp</span>
+                </button>
+                <button class="action-btn email" (click)="emitAction('email')">
+                    <i class="fas fa-envelope"></i>
+                    <span>Mandar Email</span>
+                </button>
+                <button class="action-btn price" (click)="emitAction('priceList')">
+                    <i class="fas fa-tags"></i>
+                    <span>Mandar Lista Precios</span>
+                </button>
+                <button class="action-btn budget" (click)="emitAction('budget')">
+                    <i class="fas fa-file-invoice-dollar"></i>
+                    <span>Mandar Presupuesto</span>
+                </button>
+            </div>
+
+            <!-- Lead Details Section -->
+            <div class="details-section">
+                <h6 class="section-title"><i class="fas fa-info-circle me-2"></i>Información del Prospecto</h6>
+                <div class="detail-row">
+                    <label>Email:</label>
+                    <span>{{ lead?.email }}</span>
+                </div>
+                <div class="detail-row">
+                    <label>Teléfono:</label>
+                    <span>{{ lead?.telefono }}</span>
+                </div>
+                <div class="detail-row">
+                    <label>Fecha Registro:</label>
+                    <span>{{ lead?.fechaRegistro | date:'medium' }}</span>
+                </div>
+                <div class="detail-row">
+                    <label>Interés:</label>
+                    <span>{{ lead?.interes || 'Cotización General' }}</span>
+                </div>
+            </div>
+
+            <!-- Interacciones Section (CRM Fase 2) -->
+            <div class="interactions-section mt-4 border-top pt-3">
+                <h6 class="section-title"><i class="fas fa-history me-2"></i>Historial de Interacciones</h6>
+                
+                <!-- Timeline de Interacciones -->
+                <div class="interactions-timeline mb-3" style="max-height: 250px; overflow-y: auto;">
+                    <div class="interaction-item p-2 border-bottom" *ngFor="let int of interacciones">
+                        <div class="d-flex justify-content-between align-items-center mb-1">
+                            <span class="badge bg-secondary">
+                                <i class="fas" 
+                                   [ngClass]="{'fa-phone': int.tipo === 'LLAMADA', 'fa-envelope': int.tipo === 'CORREO', 'fa-map-marker-alt': int.tipo === 'VISITA', 'fa-sticky-note': int.tipo === 'NOTA'}">
+                                </i> {{ int.tipo }}
+                            </span>
+                            <small class="text-muted">{{ int.fecha | date:'short' }}</small>
+                        </div>
+                        <p class="mb-0 small text-light">{{ int.notas }}</p>
+                    </div>
+                    <div *ngIf="interacciones.length === 0" class="text-center text-muted small p-2">
+                        No hay interacciones registradas.
+                    </div>
+                </div>
+
+                <!-- Formulario Nueva Interacción -->
+                <div class="bg-dark p-3 rounded mt-2">
+                    <div class="d-flex mb-2 gap-2">
+                        <select class="form-select form-select-sm bg-secondary text-white border-0" [(ngModel)]="nuevaInteraccion.tipo" style="width: auto;">
+                            <option value="NOTA">Nota</option>
+                            <option value="LLAMADA">Llamada</option>
+                            <option value="VISITA">Visita</option>
+                            <option value="CORREO">Correo</option>
+                        </select>
+                    </div>
+                    <textarea class="form-control form-control-sm bg-secondary text-white border-0 mb-2" 
+                              rows="2" placeholder="Agregar nota de la interacción..."
+                              [(ngModel)]="nuevaInteraccion.notas"></textarea>
+                    <div class="text-end">
+                        <button class="btn btn-sm btn-primary" (click)="agregarInteraccion()" [disabled]="!nuevaInteraccion.notas">
+                            <i class="fas fa-plus me-1"></i> Añadir Registro
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <div class="mt-auto pt-4 border-top">
+                <button class="btn btn-success w-100 py-2 rounded-pill shadow-sm" 
+                        (click)="emitAction('convert')" 
+                        *ngIf="lead?.status !== 'QUALIFIED'">
+                    <i class="fas fa-exchange-alt me-2"></i> Convertir a Oportunidad
+                </button>
+                <div *ngIf="lead?.status === 'QUALIFIED'" class="alert alert-success text-center py-2">
+                    <i class="fas fa-check-circle me-2"></i> Este prospecto ya es una Oportunidad
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

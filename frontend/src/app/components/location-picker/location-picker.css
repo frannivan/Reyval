@@ -1,0 +1,15 @@
+.picker-container {
+    height: 300px;
+    /* Compact height for form */
+    width: 100%;
+    margin-bottom: 10px;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+}
+
+#picker-map {
+    height: 100%;
+    width: 100%;
+    border-radius: 4px;
+    cursor: crosshair;
+}

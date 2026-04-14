@@ -1,0 +1,124 @@
+<div class="container mt-4">
+    <div *ngIf="errorMessage" class="alert alert-warning">
+        {{ errorMessage }}
+    </div>
+
+    <div *ngIf="dashboardData">
+        <div class="card mb-4 shadow-sm">
+            <div class="card-body">
+                <h2 class="card-title">Bienvenido, {{ dashboardData.clienteNombre }}</h2>
+                <p class="card-text text-muted">{{ dashboardData.clienteEmail }}</p>
+            </div>
+        </div>
+
+        <h3 class="mb-3">Mis Propiedades y Contratos</h3>
+
+        <div *ngIf="dashboardData.contratos.length === 0" class="text-center py-5">
+            <p class="text-muted">No tienes contratos activos actualmente.</p>
+        </div>
+
+        <div class="row" *ngIf="dashboardData.contratos.length > 0">
+            <div class="col-md-6 col-lg-4 mb-4" *ngFor="let contrato of dashboardData.contratos">
+                <div class="card h-100 border-primary">
+                    <div class="card-header bg-primary text-white d-flex justify-content-between align-items-center">
+                        <span>Lote {{ contrato.loteNumero }}</span>
+                        <span class="badge badge-light text-primary">{{ contrato.estatus }}</span>
+                    </div>
+                    <div class="card-body">
+                        <h5 class="card-title">{{ contrato.fraccionamiento }}</h5>
+                        <p class="card-text">
+                            <strong>Fecha Contrato:</strong> {{ contrato.fechaContrato }}<br>
+                            <span class="text-muted small">Progreso de Pago: {{ contrato.totalPagado | currency:'MXN' }} / {{ contrato.montoTotal | currency:'MXN' }}</span>
+                        </p>
+                        <div class="progress mb-3" style="height: 10px;">
+                            <div class="progress-bar progress-bar-striped progress-bar-animated" role="progressbar" 
+                                [style.width.%]="contrato.progresoPagos" 
+                                [attr.aria-valuenow]="contrato.progresoPagos" 
+                                aria-valuemin="0" aria-valuemax="100">
+                            </div>
+                        </div>
+                        <p class="text-end small mb-2"><strong>{{ contrato.progresoPagos | number:'1.0-1' }}%</strong></p>
+                        <button class="btn btn-primary w-100" (click)="verEstadoCuenta(contrato)">
+                            <i class="fas fa-file-invoice-dollar me-2"></i> Ver Detalle de Pagos
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Account Statement Modal -->
+    <div class="modal-backdrop fade show" *ngIf="showModal"></div>
+    <div class="modal fade show" tabindex="-1" role="dialog" [style.display]="showModal ? 'block' : 'none'"
+        *ngIf="showModal">
+        <div class="modal-dialog modal-lg" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" *ngIf="selectedContrato">
+                        Estado de Cuenta - Lote {{ selectedContrato.loteNumero }}
+                    </h5>
+                    <button type="button" class="close" (click)="closeModal()">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                <div class="modal-body">
+                    <!-- Contract Header -->
+                    <div class="alert alert-info">
+                        <strong>Lote:</strong> {{ selectedContrato?.loteNumero }} <br>
+                        <strong>Desarrollo:</strong> {{ selectedContrato?.fraccionamiento }} <br>
+                        <strong>Fecha Contrato:</strong> {{ selectedContrato?.fechaContrato }}
+                    </div>
+
+                    <!-- Loading State -->
+                    <div *ngIf="isLoadingPagos" class="text-center py-4">
+                        <div class="spinner-border text-primary" role="status">
+                            <span class="sr-only">Cargando...</span>
+                        </div>
+                        <p class="mt-2 text-muted">Obteniendo historial de pagos...</p>
+                    </div>
+
+                    <!-- Payments Table -->
+                    <div *ngIf="!isLoadingPagos">
+                        <div class="table-responsive">
+                            <table class="table table-striped table-hover">
+                                <thead class="thead-dark">
+                                    <tr>
+                                        <th>Fecha</th>
+                                        <th>Concepto</th>
+                                        <th>Referencia</th>
+                                        <th class="text-right">Monto</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr *ngFor="let pago of pagosList">
+                                        <td>{{ pago.fechaPago }}</td>
+                                        <td>{{ pago.concepto }}</td>
+                                        <td>{{ pago.referencia }}</td>
+                                        <td class="text-right">{{ pago.monto | currency:'MXN' }}</td>
+                                    </tr>
+                                    <tr *ngIf="pagosList.length === 0">
+                                        <td colspan="4" class="text-center text-muted">
+                                            No se han registrado pagos para este contrato.
+                                        </td>
+                                    </tr>
+                                </tbody>
+                                <tfoot>
+                                    <tr class="font-weight-bold bg-light">
+                                        <td colspan="3" class="text-right">Total Pagado:</td>
+                                        <td class="text-right text-success">{{ totalPagado | currency:'MXN' }}</td>
+                                    </tr>
+                                </tfoot>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-info" (click)="downloadPDF()">
+                        <i class="fa fa-file-pdf"></i> Descargar PDF
+                    </button>
+                    <button type="button" class="btn btn-secondary" (click)="closeModal()">Cerrar</button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

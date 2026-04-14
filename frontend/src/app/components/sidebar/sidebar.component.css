@@ -1,0 +1,105 @@
+/* Sidebar Sidebar Layout */
+.sidebar {
+    min-width: 250px;
+    max-width: 250px;
+    height: 100vh;
+    background-color: #212529; /* Coincidir con bg-dark de Bootstrap */
+    border-right: 1px solid #dee2e6;
+    transition: transform 0.3s ease;
+    position: fixed;
+    top: 0;
+    left: 0;
+    z-index: 1030; /* Below Bootstrap modal (1050) and backdrop (1040) */
+    display: flex;
+    flex-direction: column;
+}
+
+@media (max-width: 991.98px) {
+    :host {
+        display: block;
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 0; /* Don't block screen when closed */
+        height: 100vh;
+        z-index: 1035; /* Above content but below modal */
+    }
+    :host.toggled {
+        width: 250px;
+    }
+    .sidebar {
+        /* Usamos left en lugar de transform para máxima compatibilidad con viewport */
+        left: -260px; 
+        z-index: 1036;
+    }
+    /* El estado toggled se aplica al :host desde app.html */
+    :host.toggled .sidebar {
+        left: 0;
+        box-shadow: 5px 0 15px rgba(0,0,0,0.5);
+    }
+}
+
+/* Scrollable Container for Menu Items */
+.sidebar-content {
+    flex-grow: 1;
+    overflow-y: auto;
+    scrollbar-width: thin;
+    scrollbar-color: #6366f1 transparent;
+}
+
+/* Hide scrollbar by default, show on hover for cleaner Look */
+.sidebar-content::-webkit-scrollbar {
+    width: 4px;
+}
+.sidebar-content::-webkit-scrollbar-thumb {
+    background-color: transparent;
+}
+.sidebar:hover .sidebar-content::-webkit-scrollbar-thumb {
+    background-color: #cbd5e1;
+    border-radius: 10px;
+}
+
+.sidebar-heading {
+    padding: 2rem 1.5rem;
+    font-size: 1.25rem;
+    font-weight: bold;
+    color: #6366f1;
+    border-bottom: 1px solid #f1f5f9;
+}
+
+.list-group-item {
+    padding: 0.75rem 1.5rem;
+    border: none;
+    color: #475569;
+    font-weight: 500;
+    transition: all 0.2s;
+}
+
+.list-group-item:hover {
+  background-color: #495057 !important;
+  padding-left: 2rem;
+}
+
+.list-group-item.active {
+  background-color: #007bff !important;
+  border-left: 4px solid #0056b3;
+}
+
+/* Collapse Submenus */
+.collapse .list-group-item {
+  font-size: 0.9rem;
+  opacity: 0.85;
+}
+
+.collapse .list-group-item:hover {
+  opacity: 1;
+  padding-left: 2.2rem;
+}
+
+.cursor-pointer {
+  cursor: pointer;
+}
+
+.me-2 {
+  margin-right: 0.5rem;
+}

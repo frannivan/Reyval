@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>UML: Gestión de Clientes - Reyval ERP</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/mermaid/dist/mermaid.min.js"></script>
+    <style>
+        :root {
+            --primary-color: #2c3e50;
+            --accent-color: #e67e22;
+            --bg-color: #f8f9fa;
+        }
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; line-height: 1.6; color: #333; margin: 0; background: var(--bg-color); }
+        .container { max-width: 900px; margin: 0 auto; padding: 2rem; background: #fff; box-shadow: 0 0 10px rgba(0,0,0,0.05); }
+        .no-print { display: flex; justify-content: space-between; align-items: center; margin-bottom: 2rem; }
+        .btn { padding: 8px 16px; border-radius: 4px; text-decoration: none; font-weight: 600; cursor: pointer; border: none; transition: 0.3s; }
+        .btn-print { background: var(--accent-color); color: #fff; }
+        .btn-back { background: #eee; color: #444; }
+        header { border-bottom: 3px solid var(--primary-color); margin-bottom: 2rem; padding-bottom: 1rem; }
+        h1 { margin: 0; color: var(--primary-color); font-size: 2rem; }
+        .section { margin-bottom: 3rem; }
+        h2 { border-left: 5px solid var(--accent-color); padding-left: 15px; color: var(--primary-color); margin-top: 2rem; }
+        table { width: 100%; border-collapse: collapse; margin: 1rem 0; }
+        table, th, td { border: 1px solid #ddd; }
+        th, td { padding: 12px; text-align: left; vertical-align: top; }
+        th { background: #f4f4f4; color: #666; width: 30%; }
+        .mermaid { background: #fff; padding: 1rem; margin: 1rem 0; }
+        
+        @media print {
+            .no-print { display: none !important; }
+            body { background: #fff; font-size: 11pt; }
+            .container { width: 100%; max-width: 100%; box-shadow: none; padding: 0; }
+            h2 { page-break-before: auto; }
+        }
+    </style>
+</head>
+<body>
+<div class="container">
+    <div class="no-print">
+        <a href="../documentation.html" class="btn btn-back"><i class="fas fa-arrow-left"></i> Volver</a>
+        <button onclick="window.print()" class="btn btn-print"><i class="fas fa-print"></i> Imprimir a PDF</button>
+    </div>
+
+    <header>
+        <h1>Gestión de Clientes & Compras</h1>
+        <p>Documentación Formal de Casos de Uso - Estándar UML</p>
+    </header>
+
+    <!-- Sección 1: Diagrama de Casos de Uso -->
+    <div class="section">
+        <h2>1. Diagrama de Casos de Uso (UML)</h2>
+        <p>Interacciones financieras y de consulta para los adquirentes.</p>
+        <div class="mermaid">
+        graph TD
+            subgraph Modulo_Clientes ["Portal del Cliente (Caja Negra)"]
+                UC1((Consultar Estado Cuenta))
+                UC2((Registrar Comprobante Pago))
+                UC3((Descargar Historial Compras))
+                UC4((Imprimir Recibo PDF))
+                UC5((Solicitar Factura))
+                
+                UC2 -.->|&lt;&lt;extend&gt;&gt;| UC4
+                UC3 -.->|&lt;&lt;include&gt;&gt;| UC1
+            end
+
+            CLI[👤 Cliente] --- UC1
+            CLI --- UC2
+            CLI --- UC3
+            
+            CON[🏦 Contabilidad] --- UC2
+            CON --- UC5
+            
+            S[⚙️ Sistema] --- UC4
+            S --- UC1
+        </div>
+    </div>
+
+    <!-- Sección 2: Descripción Textual Formal -->
+    <div class="section">
+        <h2>2. Descripción: Registro y Validación de Pagos</h2>
+        <table>
+            <tr><th>Objetivo</th><td>Registrar los abonos del cliente y mantener la transparencia financiera.</td></tr>
+            <tr><th>Actores</th><td>Cliente (Iniciador), Contabilidad (Validador), Sistema (Pasivo).</td></tr>
+            <tr><th>Iniciación</th><td>El Cliente realiza una transferencia o depósito y accede a "Mis Pagos".</td></tr>
+            <tr><th>Flujo de Mensajes</th><td>
+                1. El Cliente sube la imagen del comprobante y el monto.<br>
+                2. El Sistema marca el pago como "Pendiente de Validación".<br>
+                3. El Sistema notifica a Contabilidad para su revisión en banco.<br>
+                4. Contabilidad marca el pago como "Validado".<br>
+                5. El Sistema actualiza el saldo del cliente y genera el recibo PDF.
+            </td></tr>
+            <tr><th>Flujos Alternativos</th><td>
+                <b>A1: Pago Rechazado:</b> Contabilidad anota el motivo (ej. Saldo insuficiente) y el Cliente debe re-subir.
+            </td></tr>
+            <tr><th>Valor Final</th><td>Saldo actualizado en el ERP y comprobante PDF oficial para el cliente.</td></tr>
+        </table>
+    </div>
+
+    <!-- Sección 3: Modelado Dinámico (Secuencia) -->
+    <div class="section">
+        <h2>3. Diagrama de Secuencia: Consulta de Cuenta</h2>
+        <div class="mermaid">
+        sequenceDiagram
+            actor C as Cliente
+            participant Web as Interfaz UI
+            participant API as Backend (Service)
+            participant DB as Base de Datos
+            
+            C->>Web: Click en "Estado de Cuenta"
+            Web->>API: GET /api/clientes/account/{id}
+            API->>DB: Query Amortización + Pagos
+            DB-->>API: Data Recordset
+            API-->>Web: JSON Mapped Object
+            Web-->>C: Muestra Gráfica de Avance y Tabla de Pagos
+        </div>
+    </div>
+</div>
+
+<script>
+    mermaid.initialize({ startOnLoad: true, theme: 'neutral', fontFamily: 'Segoe UI' });
+</script>
+</body>
+</html>

@@ -1,0 +1,133 @@
+<!-- BARRA LATERAL (SIDEBAR) - Gestión de Navegación por Roles -->
+<div class="sidebar bg-dark" id="sidebar-wrapper">
+  <!-- Logotipo y Título -->
+  <div class="sidebar-heading text-center py-4 text-white border-bottom">
+    <i class="fas fa-building text-primary me-2"></i> Reyval Admin
+  </div>
+  
+  <div class="sidebar-content">
+    <div class="list-group list-group-flush">
+      <!-- SECCIÓN GENERAL: Accesos rápidos -->
+      <a *ngIf="canAccess('home')" (click)="onNavClick()" routerLink="/home" routerLinkActive="active" class="list-group-item list-group-item-action bg-dark text-white">
+        <i class="fas fa-home me-2"></i> Inicio
+      </a>
+
+      <!-- DASHBOARDS & PANELS -->
+      <a *ngIf="canAccess('admin_dashboard')" 
+         (click)="onNavClick()" routerLink="/admin" routerLinkActive="active" [routerLinkActiveOptions]="{exact: true}" class="list-group-item list-group-item-action bg-dark text-white">
+        <i class="fas fa-tachometer-alt me-2"></i> Dashboard Principal
+      </a>
+
+      <a *ngIf="canAccess('panel_vendedor')" (click)="onNavClick()" routerLink="/panel-vendedor" routerLinkActive="active" class="list-group-item list-group-item-action bg-dark text-white">
+        <i class="fas fa-user-tie me-2"></i> Mi Panel Vendedor
+      </a>
+
+      <a *ngIf="canAccess('section:pagos')" (click)="onNavClick()" routerLink="/recepcion" routerLinkActive="active" class="list-group-item list-group-item-action bg-dark text-white">
+        <i class="fas fa-concierge-bell me-2"></i> Panel Recepción
+      </a>
+
+      <a *ngIf="canAccess('panel_contabilidad')" (click)="onNavClick()" routerLink="/contabilidad" routerLinkActive="active" class="list-group-item list-group-item-action bg-dark text-white">
+        <i class="fas fa-calculator me-2"></i> Panel Contabilidad
+      </a>
+
+      <a *ngIf="canAccess('panel_directivo')" (click)="onNavClick()" routerLink="/directivo" routerLinkActive="active" class="list-group-item list-group-item-action bg-dark text-white">
+        <i class="fas fa-briefcase me-2"></i> Panel Directivo
+      </a>
+
+      <a *ngIf="canAccess('panel_cliente')" (click)="onNavClick()" routerLink="/user" routerLinkActive="active" class="list-group-item list-group-item-action bg-dark text-white">
+        <i class="fas fa-th-large me-2"></i> Mi Portal Cliente
+      </a>
+
+      <a *ngIf="canAccess('lot_details')" [routerLink]="['/profile']" [queryParams]="{tab: 'lotes'}" routerLinkActive="active" class="list-group-item list-group-item-action bg-dark text-white ps-4 small">
+        <i class="fas fa-map-marker-alt me-2 text-warning"></i> Mis Lotes
+      </a>
+
+      <!-- CRM SECCIÓN -->
+      <div *ngIf="canAccess('leads') || canAccess('opportunities') || canAccess('clientes')" class="list-group-item bg-dark text-info small text-uppercase fw-bold mt-3">Gestión CRM</div>
+      
+      <a *ngIf="canAccess('leads')" (click)="onNavClick()" routerLink="/admin/crm/leads" routerLinkActive="active" class="list-group-item list-group-item-action bg-dark text-white">
+        <i class="fas fa-user-plus me-2"></i> Prospectos
+      </a>
+
+      <a *ngIf="canAccess('opportunities')" (click)="onNavClick()" routerLink="/admin/crm/opportunities" routerLinkActive="active" class="list-group-item list-group-item-action bg-dark text-white">
+        <i class="fas fa-chart-line me-2"></i> Oportunidades
+      </a>
+
+      <a *ngIf="canAccess('clientes')" (click)="onNavClick()" routerLink="/admin/clientes" routerLinkActive="active" class="list-group-item list-group-item-action bg-dark text-white">
+        <i class="fas fa-users me-2"></i> Clientes
+      </a>
+
+      <!-- INVENTARIO SECCIÓN -->
+      <div *ngIf="canAccess('fraccionamientos') || canAccess('lotes')" class="list-group-item bg-dark text-info small text-uppercase fw-bold mt-3">Inventario</div>
+      
+      <a *ngIf="canAccess('fraccionamientos')" (click)="onNavClick()" routerLink="/admin/fraccionamientos" routerLinkActive="active" class="list-group-item list-group-item-action bg-dark text-white">
+        <i class="fas fa-city me-2"></i> Fraccionamientos
+      </a>
+
+      <a *ngIf="canAccess('lotes')" (click)="onNavClick()" routerLink="/admin/lotes" routerLinkActive="active" class="list-group-item list-group-item-action bg-dark text-white">
+        <i class="fas fa-th me-2"></i> Inventario de Lotes
+      </a>
+
+      <!-- VENTAS Y FINANZAS -->
+      <div *ngIf="canAccess('contratos') || canAccess('cotizaciones') || canAccess('section:pagos')" class="list-group-item bg-dark text-info small text-uppercase fw-bold mt-3">Ventas y Finanzas</div>
+
+      <a *ngIf="canAccess('cotizaciones')" (click)="onNavClick()" routerLink="/cotizar" routerLinkActive="active" class="list-group-item list-group-item-action bg-dark text-white">
+        <i class="fas fa-calculator me-2"></i> Cotizador
+      </a>
+
+      <a *ngIf="canAccess('contratos')" (click)="onNavClick()" routerLink="/admin/generar-contrato" routerLinkActive="active" class="list-group-item list-group-item-action bg-dark text-white">
+        <i class="fas fa-file-contract me-2"></i> Generar Contrato
+      </a>
+
+      <a *ngIf="canAccess('action:pago:validate') || canAccess('section:pagos')" (click)="onNavClick()" routerLink="/validacion-pagos" routerLinkActive="active" class="list-group-item list-group-item-action bg-dark text-white">
+        <i class="fas fa-clipboard-check me-2 text-warning"></i> Validación de Pagos
+      </a>
+
+      <a *ngIf="canAccess('payments_view')" [routerLink]="['/admin']" [queryParams]="{view: 'payments'}" routerLinkActive="active" class="list-group-item list-group-item-action bg-dark text-white ps-4">
+        <i class="fas fa-cash-register me-2 text-info"></i> Registro de Pagos
+      </a>
+
+      <a *ngIf="canAccess('contracts_view')" [routerLink]="['/admin']" [queryParams]="{view: 'contracts'}" routerLinkActive="active" class="list-group-item list-group-item-action bg-dark text-white ps-4">
+        <i class="fas fa-file-invoice-dollar me-2 text-info"></i> Mis Contratos (Resumen)
+      </a>
+
+      <!-- ADMINISTRACIÓN SECCIÓN -->
+      <div *ngIf="canAccess('users') || canAccess('permissions')" class="list-group-item bg-dark text-info small text-uppercase fw-bold mt-3">Administración</div>
+
+      <a *ngIf="canAccess('users')" (click)="onNavClick()" routerLink="/admin/users" routerLinkActive="active" class="list-group-item list-group-item-action bg-dark text-white">
+        <i class="fas fa-user-cog me-2"></i> Usuarios del Sistema
+      </a>
+
+      <a *ngIf="canAccess('permissions')" (click)="onNavClick()" routerLink="/admin/permissions" routerLinkActive="active" class="list-group-item list-group-item-action bg-dark text-white text-warning">
+        <i class="fas fa-shield-alt me-2"></i> Gestionar Permisos
+      </a>
+
+      <!-- HERRAMIENTAS Y SOPORTE -->
+      <div *ngIf="canAccess('reportes') || canAccess('carga_datos') || canAccess('documentacion')" class="list-group-item bg-dark text-info small text-uppercase fw-bold mt-3">Herramientas</div>
+      
+      <a *ngIf="canAccess('reportes')" (click)="onNavClick()" routerLink="/admin/reportes" routerLinkActive="active" class="list-group-item list-group-item-action bg-dark text-white">
+        <i class="fas fa-chart-bar me-2"></i> Reportes
+      </a>
+      
+      <a *ngIf="canAccess('carga_datos')" (click)="onNavClick()" routerLink="/admin/carga-datos" routerLinkActive="active" class="list-group-item list-group-item-action bg-dark text-white">
+        <i class="fas fa-file-upload me-2"></i> Carga Masiva
+      </a>
+      
+      <a *ngIf="canAccess('documentacion')" (click)="onNavClick()" routerLink="/admin/documentacion" routerLinkActive="active" class="list-group-item list-group-item-action bg-dark text-white">
+        <i class="fas fa-book me-2"></i> Documentación
+      </a>
+      
+      <a *ngIf="canAccess('soporte')" (click)="onNavClick()" routerLink="/admin/soporte" routerLinkActive="active" class="list-group-item list-group-item-action bg-dark text-white border-top border-secondary mt-2">
+        <i class="fas fa-headset me-2 text-primary"></i> Soporte Técnico
+      </a>
+      <a (click)="onNavClick()" routerLink="/profile/security" routerLinkActive="active" class="list-group-item list-group-item-action bg-dark text-white border-top border-secondary mt-2">
+        <i class="fas fa-shield-alt me-2 text-warning"></i> Seguridad de Cuenta
+      </a>
+    </div>
+  </div>
+    
+  <!-- Logout -->
+  <a (click)="logout()" class="list-group-item list-group-item-action bg-dark text-white mt-auto cursor-pointer" style="cursor: pointer; border-top: 1px solid #444;">
+    <i class="fas fa-sign-out-alt me-2 text-danger"></i> Cerrar Sesión
+  </a>
+</div>

@@ -1,0 +1,44 @@
+/* Basic spacing */
+.card {
+    margin-top: 20px;
+}
+
+.modal-backdrop {
+    opacity: 0.5;
+}
+
+.modal {
+    display: block;
+    overflow-y: auto;
+}
+/* Force table text color fixes */
+.table-lux thead th {
+    color: #4b5563 !important; /* Dark grey for headers */
+    font-weight: 800;
+}
+
+.table-lux tbody td, 
+.table-lux tbody td div, 
+.table-lux tbody td span,
+.table-lux tbody td i { 
+    color: #1e293b !important; /* Very dark slate for body text */
+}
+
+/* Specific overrides for classes used in the HTML */
+.table-lux tbody td .text-dark {
+    color: #1e293b !important;
+}
+
+.table-lux tbody td .text-muted {
+    color: #64748b !important;
+}
+
+.table-lux tbody td .badge-light {
+    color: #1e293b !important;
+    background-color: #f1f5f9 !important;
+    border: 1px solid #e2e8f0 !important;
+}
+
+.text-muted {
+    color: #64748b !important; /* Ensure muted text is visible grey, not white */
+}

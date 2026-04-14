@@ -1,0 +1,312 @@
+<div class="container-fluid py-4 min-vh-100 dark-bg">
+    <!-- Header -->
+    <div class="row mb-4">
+        <div class="col-12 d-flex justify-content-between align-items-center">
+            <h2 class="text-white fw-bold m-0 m-font animate-fade-in">
+                <i class="fas fa-headset me-2 text-primary"></i>Centro de Soporte
+            </h2>
+            <div class="d-flex gap-2">
+                <button class="btn btn-premium" (click)="prepNewTicket('INCIDENCIA')" data-bs-toggle="modal" data-bs-target="#reportModal">
+                    <i class="fas fa-bug me-2"></i>Reportar Incidencia
+                </button>
+                <button *ngIf="canRequestChange" class="btn btn-outline-info rounded-pill px-4 fw-bold" (click)="prepNewTicket('CAMBIO')" data-bs-toggle="modal" data-bs-target="#reportModal">
+                    <i class="fas fa-magic me-2"></i>Solicitar Cambio
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Alert Message -->
+    <div *ngIf="message" class="alert alert-info alert-dismissible fade show mb-4" role="alert">
+        {{ message }}
+        <button type="button" class="btn-close" (click)="message = ''"></button>
+    </div>
+
+    <!-- Main Content -->
+    <div class="row">
+        <!-- Tickets List -->
+        <div class="col-lg-8 mb-4">
+            <div class="glass-card h-100 p-0 overflow-hidden">
+                <div class="p-3 border-bottom border-secondary d-flex justify-content-between align-items-center bg-dark-accent">
+                    <div class="d-flex gap-2">
+                        <button class="btn btn-sm rounded-pill px-3 fw-bold" [class.btn-primary]="activeTypeFilter === 'TODOS'" [class.btn-dark]="activeTypeFilter !== 'TODOS'" (click)="setFilter('TODOS')">Todos</button>
+                        <button class="btn btn-sm rounded-pill px-3 fw-bold" [class.btn-warning]="activeTypeFilter === 'INCIDENCIA'" [class.btn-dark]="activeTypeFilter !== 'INCIDENCIA'" (click)="setFilter('INCIDENCIA')">Incidencias</button>
+                        <button class="btn btn-sm rounded-pill px-3 fw-bold" [class.btn-info]="activeTypeFilter === 'CAMBIO'" [class.btn-dark]="activeTypeFilter !== 'CAMBIO'" (click)="setFilter('CAMBIO')">Cambios</button>
+                    </div>
+                    <div class="badge bg-primary">{{ filteredTickets.length }} Mostrados</div>
+                </div>
+
+                <div class="table-responsive" style="max-height: 70vh;">
+                    <table class="table table-dark table-hover m-0">
+                        <thead class="sticky-top bg-dark">
+                            <tr>
+                                <th>Tipo</th>
+                                <th>Asunto</th>
+                                <th>Prioridad</th>
+                                <th *ngIf="canSeeAll">Remitente</th>
+                                <th>Estatus</th>
+                                <th>Fecha</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr *ngFor="let t of filteredTickets" (click)="selectTicket(t)" [class.table-active]="selectedTicket?.id === t.id" class="pointer">
+                                <td>
+                                    <i *ngIf="t.tipo === 'CAMBIO'" class="fas fa-magic text-info" title="Cambio"></i>
+                                    <i *ngIf="t.tipo !== 'CAMBIO'" class="fas fa-bug text-warning" title="Incidencia"></i>
+                                </td>
+                                <td>
+                                    <div class="fw-bold text-white">{{ t.titulo }}</div>
+                                    <small class="text-muted text-truncate d-inline-block" style="max-width: 250px;">{{ t.descripcion }}</small>
+                                </td>
+                                <td>
+                                    <span class="badge" [ngClass]="{
+                                        'bg-danger': t.prioridad === 'ALTA',
+                                        'bg-warning text-dark': t.prioridad === 'MEDIA',
+                                        'bg-info text-dark': t.prioridad === 'BAJA'
+                                    }">{{ t.prioridad }}</span>
+                                </td>
+                                <td *ngIf="canSeeAll" class="small">
+                                    <div class="text-white-50">{{ t.user?.username }}</div>
+                                    <div class="x-small text-info">{{ t.user?.role?.name?.replace('ROLE_', '') }}</div>
+                                </td>
+                                <td>
+                                    <span class="badge rounded-pill border" [ngClass]="{
+                                        'border-primary text-primary': t.estatus === 'ABIERTO',
+                                        'border-warning text-warning': t.estatus === 'EN_PROCESO',
+                                        'border-info text-info': t.estatus === 'LISTO_PARA_PRUEBAS',
+                                        'border-success text-success': t.estatus === 'LISTO' || t.estatus === 'LIBERADO',
+                                        'border-danger text-danger': t.estatus === 'RECHAZADO'
+                                    }">{{ t.estatus }}</span>
+                                </td>
+                                <td><small>{{ t.createdAt | date:'shortDate' }}</small></td>
+                            </tr>
+                            <tr *ngIf="filteredTickets.length === 0">
+                                <td colspan="6" class="text-center py-5 text-muted">No hay reportes en esta categoría.</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <!-- Ticket Detail / Conversation -->
+        <div class="col-lg-4 mb-4">
+            <div class="glass-card h-100 d-flex flex-column p-0 border-primary-glow">
+                <div *ngIf="!selectedTicket" class="h-100 d-flex flex-column justify-content-center align-items-center text-muted p-5 text-center">
+                    <i class="fas fa-ticket-alt fa-3x mb-3 opacity-25"></i>
+                    <p>Selecciona un ticket para ver los detalles y comentarios.</p>
+                </div>
+
+                <div *ngIf="selectedTicket" class="d-flex flex-column h-100 overflow-hidden">
+                    <div class="p-4 border-bottom border-secondary bg-dark-accent">
+                        <div class="d-flex justify-content-between align-items-start mb-2">
+                            <h5 class="text-white mb-0">#{{ selectedTicket.id }} - {{ selectedTicket.titulo }}</h5>
+                            <button class="btn-close btn-close-white btn-sm" (click)="selectedTicket = null"></button>
+                        </div>
+                        <div class="mb-4">
+                            <div class="d-flex justify-content-between align-items-center mb-3">
+                                <span class="badge" [ngClass]="{
+                                    'bg-danger': selectedTicket.prioridad === 'ALTA',
+                                    'bg-warning text-dark': selectedTicket.prioridad === 'MEDIA',
+                                    'bg-info text-dark': selectedTicket.prioridad === 'BAJA'
+                                }">{{ selectedTicket.prioridad }}</span>
+                                <span class="text-white-50 small">{{ selectedTicket.createdAt | date:'medium' }}</span>
+                            </div>
+
+                            <!-- Structured Meta Data -->
+                            <div class="structured-meta p-3 rounded bg-black-25 border border-secondary mb-4">
+                                <div class="mb-3" *ngIf="selectedTicket.registroAfectado">
+                                    <div class="x-small text-primary fw-bold text-uppercase mb-1">Registro / Folio Afectado</div>
+                                    <div class="text-white small italic-font"><i class="fas fa-search-location me-2"></i>{{ selectedTicket.registroAfectado }}</div>
+                                </div>
+                                <div class="mb-3" *ngIf="selectedTicket.rolesDestino">
+                                    <div class="x-small text-primary fw-bold text-uppercase mb-1">Roles Afectados (Alcance)</div>
+                                    <div class="d-flex flex-wrap gap-1 mt-1">
+                                        <span *ngFor="let r of selectedTicket.rolesDestino.split(', ')" class="badge bg-dark border border-info text-info p-1">{{ r }}</span>
+                                    </div>
+                                </div>
+                                <div class="mb-0" *ngIf="selectedTicket.pasosReplicacion">
+                                    <div class="x-small text-primary fw-bold text-uppercase mb-1">Instrucciones para Replicar</div>
+                                    <div class="text-white-50 x-small bg-dark p-2 rounded border border-secondary" style="white-space: pre-wrap;">{{ selectedTicket.pasosReplicacion }}</div>
+                                </div>
+                            </div>
+
+                            <p class="text-light mb-0" style="white-space: pre-wrap;">{{ selectedTicket.descripcion }}</p>
+                        </div>
+                        
+                        <!-- Actions for Support and Admin -->
+                        <div class="d-flex flex-wrap gap-2 mt-3">
+                            <!-- Support Roles Actions (Support and Directivo can manage) -->
+                            <ng-container *ngIf="isSoporte || isDirectivo">
+                                <button class="btn btn-xs btn-warning" (click)="updateStatus('EN_PROCESO')">En Proceso</button>
+                                <button class="btn btn-xs btn-info" (click)="updateStatus('LISTO_PARA_PRUEBAS')">Listo para Pruebas</button>
+                                <button class="btn btn-xs btn-danger" (click)="updateStatus('RECHAZADO')">Rechazar</button>
+                            </ng-container>
+
+                            <!-- Admin Actions after testing -->
+                            <ng-container *ngIf="isAdmin || isDirectivo">
+                                <button class="btn btn-xs btn-success" (click)="updateStatus('LISTO')">Listo / Validado</button>
+                                <button class="btn btn-xs btn-outline-success" (click)="updateStatus('LIBERADO')">Liberar</button>
+                            </ng-container>
+                        </div>
+                    </div>
+
+                    <!-- Conversation/Comments -->
+                    <div class="flex-grow-1 overflow-auto p-4 bg-black-25" #chatContainer>
+                        <h6 class="text-primary small fw-bold text-uppercase mb-3">Conversación</h6>
+                        
+                        <!-- Legacy Comments Fallback -->
+                        <div *ngIf="selectedTicket.comentarios" class="mb-4">
+                            <div class="comments-container">
+                                <div *ngFor="let line of selectedTicket.comentarios.split('\n---\n')" class="comment-bubble mb-2 border-start border-primary ps-3 py-1 bg-dark-accent">
+                                    {{ line }}
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Modern Messages Array -->
+                        <div class="messages-list" *ngIf="selectedTicket.mensajes && selectedTicket.mensajes.length > 0">
+                            <div *ngFor="let msg of selectedTicket.mensajes" class="mb-3 d-flex flex-column" [class.align-items-end]="msg.userId === currentUser?.id" [class.align-items-start]="msg.userId !== currentUser?.id">
+                                <div class="message-bubble p-2 rounded shadow-sm" 
+                                     [style.background]="msg.userId === currentUser?.id ? 'var(--primary-glow)' : '#334155'"
+                                     [style.max-width]="'85%'">
+                                    <div class="x-small fw-bold mb-1" [class.text-white-50]="msg.userId !== currentUser?.id" [class.text-warning]="msg.userId === currentUser?.id">
+                                        {{ msg.user?.username || 'Usuario' }}
+                                    </div>
+                                    <div class="text-white small">{{ msg.contenido }}</div>
+                                    <div class="x-small text-white-50 text-end mt-1">{{ msg.createdAt | date:'shortTime' }}</div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div *ngIf="!selectedTicket.comentarios && (!selectedTicket.mensajes || selectedTicket.mensajes.length === 0)" class="text-center py-4 opacity-50">
+                            <i class="fas fa-comments fa-2x mb-2"></i>
+                            <p class="small">No hay mensajes aún.</p>
+                        </div>
+
+                        <!-- Image Evidence if exists -->
+                        <div class="evidence-section mt-4" *ngIf="selectedTicket.evidenciaUrl">
+                           <h6 class="text-primary small fw-bold text-uppercase mb-3">Evidencia Adjunta</h6>
+                           <div class="evidence-img-container rounded border border-secondary p-2 bg-dark">
+                               <img [src]="getEvidenciaUrl(selectedTicket)" class="img-fluid rounded shadow-sm" alt="Evidencia">
+                               <div class="mt-2 text-center">
+                                   <a [href]="getEvidenciaUrl(selectedTicket)" target="_blank" class="btn btn-xs btn-outline-primary">Abrir en pestaña nueva</a>
+                               </div>
+                           </div>
+                        </div>
+                    </div>
+
+                    <!-- Add Comment -->
+                    <div class="p-3 bg-dark-accent border-top border-secondary">
+                        <div class="input-group">
+                            <input type="text" class="form-control bg-dark text-white border-secondary" 
+                                   placeholder="Escribe un comentario..." [(ngModel)]="newComment" (keyup.enter)="addComment()">
+                            <button class="btn btn-primary" (click)="addComment()" [disabled]="!newComment">
+                                <i class="fas fa-paper-plane"></i>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal Reportar Ticket -->
+<div class="modal fade" id="reportModal" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content glass-card p-0 overflow-hidden border-primary">
+            <div class="modal-header border-secondary bg-dark-accent">
+                <h5 class="modal-title text-white">
+                    <span *ngIf="newTicket.tipo === 'CAMBIO'">Solicitar Cambio / Mejora</span>
+                    <span *ngIf="newTicket.tipo !== 'CAMBIO'">Reportar Incidencia</span>
+                </h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body p-4 bg-dark">
+                <div class="alert alert-info py-2 small" *ngIf="newTicket.tipo === 'CAMBIO'">
+                    <i class="fas fa-info-circle me-1"></i> Usa esta opción para solicitar ajustes estéticos o nuevas funciones.
+                </div>
+                <div class="mb-3">
+                    <label class="form-label text-light small text-uppercase fw-bold">Título</label>
+                    <input type="text" class="form-control bg-dark-accent text-white border-secondary" 
+                           [(ngModel)]="newTicket.titulo" [placeholder]="newTicket.tipo === 'CAMBIO' ? 'Ej: Cambiar color de botones...' : 'Ej: Error al cargar lote 102'">
+                </div>
+                <div class="mb-3">
+                    <label class="form-label text-light small text-uppercase fw-bold">Descripción Detallada</label>
+                    <textarea class="form-control bg-dark-accent text-white border-secondary" rows="4"
+                              [(ngModel)]="newTicket.descripcion" [placeholder]="newTicket.tipo === 'CAMBIO' ? 'Describe el cambio que necesitas...' : 'Explica paso a paso qué sucede...'"></textarea>
+                </div>
+                <div class="mb-3">
+                    <label class="form-label text-light small text-uppercase fw-bold">Prioridad</label>
+                    <div class="row g-2">
+                        <div class="col-4" *ngFor="let p of ['BAJA','MEDIA','ALTA']">
+                            <button type="button" class="btn btn-sm w-100 border-secondary text-white" 
+                                    [class.btn-primary]="newTicket.prioridad === p" (click)="newTicket.prioridad = p">
+                                {{ p }}
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- DYNAMIC FIELDS FOR INCIDENT -->
+                <div class="mb-3 animate-fade-in" *ngIf="newTicket.tipo !== 'CAMBIO'">
+                    <label class="form-label text-light small text-uppercase fw-bold">Categoría del Fallo</label>
+                    <select class="form-select bg-dark-accent text-white border-secondary mb-3" [(ngModel)]="selectedCategory">
+                        <option *ngFor="let cat of incidentCategories" [value]="cat.id">{{ cat.label }}</option>
+                    </select>
+
+                    <div class="context-fields p-3 rounded bg-dark-accent border border-secondary mb-3">
+                        <!-- Contract Context -->
+                        <div *ngIf="selectedCategory === 'CONTRATO'">
+                            <input type="text" class="form-control form-control-sm bg-dark text-white border-secondary mb-2" [(ngModel)]="dynamicContext.cliente" placeholder="Nombre completo del cliente">
+                            <input type="text" class="form-control form-control-sm bg-dark text-white border-secondary" [(ngModel)]="dynamicContext.lote" placeholder="Número de Lote (ej: A-12)">
+                        </div>
+                        <!-- Client Context -->
+                        <div *ngIf="selectedCategory === 'CLIENTE'">
+                            <input type="text" class="form-control form-control-sm bg-dark text-white border-secondary" [(ngModel)]="dynamicContext.identificador" placeholder="Nombre o ID del Cliente">
+                        </div>
+                        <!-- Lead Context -->
+                        <div *ngIf="selectedCategory === 'LEAD'">
+                            <input type="text" class="form-control form-control-sm bg-dark text-white border-secondary" [(ngModel)]="dynamicContext.interesado" placeholder="Nombre del interesado/prospecto">
+                        </div>
+                        <!-- Lote Context -->
+                        <div *ngIf="selectedCategory === 'LOTE'">
+                            <input type="text" class="form-control form-control-sm bg-dark text-white border-secondary" [(ngModel)]="dynamicContext.referencia" placeholder="Ubicación / Mz / Lt">
+                        </div>
+                        <!-- General -->
+                        <div *ngIf="selectedCategory === 'GENERAL'">
+                            <input type="text" class="form-control form-control-sm bg-dark text-white border-secondary" [(ngModel)]="dynamicContext.detalle" placeholder="¿Dónde ocurre el error (ej: Página de Pagos)?">
+                        </div>
+                    </div>
+
+                    <label class="form-label text-light small text-uppercase fw-bold">Roles Afectados por la Incidencia</label>
+                    <div class="d-flex flex-wrap gap-2 mt-1 mb-3">
+                        <div *ngFor="let role of rolesDisponibles" (click)="toggleRole(role)" 
+                             class="badge pointer p-2 border" 
+                             [class.bg-info]="selectedRoles.includes(role)" [class.text-dark]="selectedRoles.includes(role)"
+                             [class.border-secondary]="!selectedRoles.includes(role)">
+                            {{ role }}
+                        </div>
+                    </div>
+
+                    <label class="form-label text-light small text-uppercase fw-bold">Pasos para Replicar</label>
+                    <textarea class="form-control bg-dark-accent text-white border-secondary" rows="3"
+                              [(ngModel)]="pasosReplicacion" placeholder="1. Entré a... 2. Di clic en... 3. Apareció..."></textarea>
+                </div>
+                <div class="row mb-3">
+                    <div class="col-6">
+                        <label class="form-label text-light small text-uppercase fw-bold">Evidencia (Opcional)</label>
+                        <input type="file" class="form-control bg-dark-accent text-white border-secondary btn-sm" (change)="onFileSelected($event)">
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer border-secondary bg-dark-accent">
+                <button type="button" class="btn btn-outline-light" data-bs-dismiss="modal">Cancelar</button>
+                <button type="button" class="btn btn-premium" (click)="onSubmit()" data-bs-dismiss="modal" [disabled]="!newTicket.titulo || !newTicket.descripcion">
+                    Enviar Reporte
+                </button>
+            </div>
+        </div>
+    </div>
+</div>

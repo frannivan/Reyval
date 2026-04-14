@@ -1,0 +1,25 @@
+.polygon-editor-container {
+    padding: 1rem;
+}
+
+.drawing-area {
+    background-color: #f8f9fa;
+    border: 1px solid #dee2e6;
+    overflow: hidden;
+    position: relative;
+}
+
+/* Removed global svg z-index to avoid Leaflet collision */
+
+/* Ensure buttons and controls are on top and clickable */
+.col-md-3 {
+    position: relative;
+    z-index: 1000;
+    pointer-events: auto !important;
+}
+
+circle:hover {
+    r: 1.5;
+    stroke: white;
+    stroke-width: 0.2;
+}

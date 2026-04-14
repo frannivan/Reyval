@@ -1,0 +1,75 @@
+<div class="container mt-4">
+    <div class="row">
+        <!-- Dashboard Header -->
+        <div class="col-12 mb-4">
+            <h2 class="display-6 fw-bold text-dark">Panel de Contabilidad</h2>
+            <p class="text-muted">Control financiero, reportes y validación de cobros.</p>
+        </div>
+
+        <!-- Quick Access Cards -->
+        <div class="col-md-6 mb-4">
+            <div class="card bg-dark text-white shadow-lg border-0 h-100 hover-lift cursor-pointer" routerLink="/validacion-pagos">
+                <div class="card-body d-flex flex-column align-items-center justify-content-center py-5 position-relative">
+                    <span class="badge bg-warning text-dark position-absolute top-0 start-100 translate-middle rounded-pill px-3 py-2 shadow" *ngIf="pendingCount > 0" style="font-size: 1rem;">
+                        <i class="fas fa-bell me-1 animate-pulse"></i>{{ pendingCount }} Pendientes
+                    </span>
+                    <div class="rounded-circle bg-white-10 p-4 mb-3" style="background: rgba(255,255,255,0.1);">
+                        <i class="fas fa-file-invoice-dollar fa-4x text-info"></i>
+                    </div>
+                    <h4 class="fw-bold">Validación de Pagos</h4>
+                    <p class="opacity-75 text-center px-4 mt-2">Revisar depósitos, transferencias y comprobantes de clientes.</p>
+                </div>
+                <div class="card-footer bg-info text-dark text-center border-0 fw-bold">
+                    ENTRAR A VALIDACIÓN <i class="fas fa-arrow-right ms-2"></i>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-6 mb-4">
+            <div class="card bg-white shadow-sm border-0 h-100 hover-lift cursor-pointer" routerLink="/admin/reportes">
+                <div class="card-body d-flex flex-column align-items-center justify-content-center py-5">
+                    <div class="rounded-circle bg-light p-4 mb-3">
+                        <i class="fas fa-chart-pie fa-4x text-primary"></i>
+                    </div>
+                    <h4 class="fw-bold text-dark">Estados de Cuenta y Reportes</h4>
+                    <p class="text-muted text-center px-4 mt-2">Consultar flujos de caja, saldos vencidos y proyecciones de cobro.</p>
+                </div>
+                <div class="card-footer bg-light text-primary text-center border-0 fw-bold">
+                    VER REPORTES <i class="fas fa-chart-line ms-2"></i>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Secondary Management -->
+    <div class="mt-4 pt-4 border-top">
+        <h5 class="text-muted mb-3 font-monospace small">GESTIÓN Y CONFIGURACIÓN</h5>
+        <div class="row">
+            <div class="col-md-4 mb-3">
+                <div class="d-grid">
+                    <button class="btn btn-outline-dark text-start p-3 shadow-none border-2" routerLink="/admin/permissions">
+                        <i class="fas fa-key me-2 text-warning"></i> 
+                        <div>
+                            <span class="d-block fw-bold">Configurar Permisos</span>
+                            <span class="small opacity-75">Administrar accesos de roles</span>
+                        </div>
+                    </button>
+                </div>
+            </div>
+            <div class="col-md-4 mb-3">
+                <div class="d-grid">
+                    <button class="btn btn-outline-dark text-start p-3 shadow-none border-2" routerLink="/admin/lotes">
+                        <i class="fas fa-map-marked-alt me-2 text-primary"></i> 
+                        <div>
+                            <span class="d-block fw-bold">Precios y Lotes</span>
+                            <span class="small opacity-75">Consultar inventario activo</span>
+                        </div>
+                    </button>
+                </div>
+            </div>
+            <p class="text-muted small mt-2">
+                <i class="fas fa-info-circle me-1"></i> Solo los roles con permisos de contabilidad/admin pueden acceder a estas áreas.
+            </p>
+        </div>
+    </div>
+</div>

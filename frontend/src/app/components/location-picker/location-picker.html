@@ -1,0 +1,17 @@
+<div class="mb-2 d-flex justify-content-between align-items-center">
+    <div class="btn-group btn-group-sm">
+        <button type="button" class="btn" [ngClass]="mode === 'POINT' ? 'btn-primary' : 'btn-outline-primary'"
+            (click)="toggleMode()">📍 Punto</button>
+        <button type="button" class="btn" [ngClass]="mode === 'POLYGON' ? 'btn-primary' : 'btn-outline-primary'"
+            (click)="toggleMode()">🔷 Polígono (Área)</button>
+    </div>
+    <button type="button" class="btn btn-sm btn-outline-danger" (click)="clearMap()">Borrar Selección</button>
+</div>
+
+<div class="picker-container">
+    <div id="picker-map"></div>
+</div>
+<small class="text-muted" *ngIf="mode === 'POINT'">Haga clic en el mapa para marcar una ubicación exacta.</small>
+<small class="text-muted" *ngIf="mode === 'POLYGON'">Haga clic en varios puntos para definir el área del
+    fraccionamiento.
+    El área se cerrará automáticamente.</small>

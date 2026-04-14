@@ -1,0 +1,316 @@
+<div class="polygon-editor-container">
+    <div class="d-flex justify-content-between align-items-center mb-3">
+        <h4 class="m-0">Editor de Polígonos</h4>
+        <!-- Logout moved to sidebar -->
+    </div>
+
+    <!-- Pestañas -->
+    <ul class="nav nav-tabs mb-3">
+        <li class="nav-item">
+            <a class="nav-link" [class.active]="activeTab === 'fraccionamiento'"
+                (click)="$event.stopPropagation(); onTabChange('fraccionamiento')">
+                📐 Polígono del Fraccionamiento
+            </a>
+        </li>
+        <li class="nav-item">
+            <a class="nav-link" [class.active]="activeTab === 'lotes'" (click)="$event.stopPropagation(); onTabChange('lotes')">
+                📦 Polígonos de Lote
+            </a>
+        </li>
+        <li class="nav-item">
+            <a class="nav-link" [class.active]="activeTab === 'plano'" (click)="$event.stopPropagation(); onTabChange('plano')">
+                🗺️ Polígonos sobre Plano
+            </a>
+        </li>
+    </ul>
+
+    <!-- Tab Content -->
+    <div class="tab-content p-3 border rounded bg-white">
+
+        <!-- TAB 1: Polígono del Fraccionamiento -->
+        <div *ngIf="activeTab === 'fraccionamiento'" class="tab-pane-content">
+
+            <!-- Selector de Fraccionamiento -->
+            <div class="form-group" *ngIf="!fraccionamientoId">
+                <label>Seleccionar Fraccionamiento:</label>
+                <select class="form-control" [(ngModel)]="selectedFraccionamientoId"
+                    (change)="loadFraccionamientoData()">
+                    <option value="">-- Seleccionar --</option>
+                    <option *ngFor="let f of fraccionamientos" [value]="f.id">
+                        {{ f.nombre }}
+                    </option>
+                </select>
+            </div>
+
+            <div *ngIf="selectedFraccionamiento" class="mt-4">
+
+                <div class="row">
+                    <div class="col-md-3">
+                        <!-- Controles -->
+                        <div class="mb-3">
+                            <button class="btn btn-primary btn-block mt-2" 
+                                *ngIf="selectedFraccionamiento.poligonoDelimitador && currentPoints.length === 0"
+                                (click)="startNewFraccionamientoDrawing()">
+                                ✨ Nuevo Polígono
+                            </button>
+                            <button class="btn btn-success btn-block mt-2" 
+                                style="position: relative; z-index: 1001; pointer-events: auto !important;"
+                                (click)="saveFraccionamientoPolygon($event)">
+                                💾 Guardar Polígono ({{currentPoints.length}} pts)
+                            </button>
+                            <button class="btn btn-warning btn-block mt-2" (click)="clearPoints()">
+                                🗑️ Limpiar Puntos
+                            </button>
+                            <button class="btn btn-danger btn-block mt-2"
+                                *ngIf="selectedFraccionamiento.poligonoDelimitador"
+                                (click)="deleteFraccionamientoPolygon()">
+                                ❌ Eliminar Guardado
+                            </button>
+                            <button class="btn btn-info btn-block mt-2" (click)="zoomToFraccionamiento()">
+                                📍 Centrar Mapa
+                            </button>
+                        </div>
+
+                        <div class="alert alert-info">
+                            <strong>Instrucciones:</strong>
+                            <ul class="pl-3 small">
+                                <li>Haz clic en el mapa para agregar vértices del polígono.</li>
+                                <li>Cierra el polígono uniendo el último punto con el primero o guardando.</li>
+                                <li>Usa el mapa satelital para mayor precisión.</li>
+                            </ul>
+                        </div>
+                    </div>
+
+                    <div class="col-md-9">
+                        <!-- Área de Mapa -->
+                        <div id="map-fraccionamiento" 
+                            style="height: 600px; width: 100%; z-index: 100; position: relative; pointer-events: auto !important;">
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+
+        <!-- TAB 2: Polígonos de Lotes -->
+        <div *ngIf="activeTab === 'lotes'" class="tab-pane-content">
+
+            <!-- Row con dos columnas -->
+            <div class="row">
+
+                <!-- Columna Izquierda: Selector y Controles -->
+                <div class="col-md-3">
+
+                    <!-- Selector de Fraccionamiento -->
+                    <div class="form-group" *ngIf="!fraccionamientoId">
+                        <label>Fraccionamiento</label>
+                        <select class="form-control" [(ngModel)]="selectedFraccionamientoId"
+                            (change)="loadLotesForFraccionamiento()">
+                            <option value="">-- Seleccionar --</option>
+                            <option *ngFor="let f of fraccionamientos" [value]="f.id">
+                                {{ f.nombre }}
+                            </option>
+                        </select>
+                    </div>
+
+                    <!-- Selector de Lote -->
+                    <div class="form-group" *ngIf="lotes.length > 0">
+                        <label>Lote a Editar</label>
+                        <select class="form-control" [(ngModel)]="selectedLoteId" (change)="loadLoteData()">
+                            <option value="">-- Seleccionar Lote --</option>
+                            <option *ngFor="let lote of lotes" [value]="lote.id">
+                                {{ lote.numeroLote || lote.numero }} - {{ lote.manzana }} ({{ lote.estatus }})
+                            </option>
+                        </select>
+                    </div>
+
+                    <!-- Datos del Lote Seleccionado -->
+                    <div *ngIf="selectedLote" class="card mt-3 mb-3">
+                        <div class="card-header bg-primary text-white">
+                            <strong>Lote {{ selectedLote.numeroLote }}</strong>
+                        </div>
+                        <div class="card-body p-2">
+                            <p class="mb-1"><small><strong>Manzana:</strong> {{ selectedLote.manzana }}</small></p>
+                            <p class="mb-1"><small><strong>Área:</strong> {{ selectedLote.areaMetrosCuadrados }}
+                                    m²</small></p>
+                            <p class="mb-2"><small><strong>Precio:</strong> {{ selectedLote.precioTotal | currency
+                                    }}</small></p>
+
+                            <div class="form-group mb-0">
+                                <label><small>Cambiar Estatus</small></label>
+                                <select class="form-control form-control-sm" [(ngModel)]="selectedLote.estatus"
+                                    (change)="$event.stopPropagation(); updateLoteEstatus()">
+                                    <option value="DISPONIBLE">Disponible</option>
+                                    <option value="APARTADO">Apartado</option>
+                                    <option value="CONTRATADO">Contratado</option>
+                                    <option value="VENDIDO">Vendido</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Botones de Acción -->
+                    <div class="mt-3" *ngIf="selectedLote">
+                        <button class="btn btn-primary btn-block mt-2" 
+                            *ngIf="selectedLote.planoCoordinates && currentPoints.length === 0"
+                            (click)="startNewLoteDrawing()">
+                            ✨ Nuevo Polígono
+                        </button>
+                        <button class="btn btn-success btn-block mt-2" 
+                            style="position: relative; z-index: 1001; pointer-events: auto !important;"
+                            (click)="saveLotePolygon($event)">
+                            💾 Guardar Lote ({{currentPoints.length}} pts)
+                        </button>
+                        <button class="btn btn-warning btn-block mt-2" (click)="clearPoints()">
+                            🗑️ Limpiar Puntos
+                        </button>
+                        <button class="btn btn-danger btn-block mt-2" *ngIf="selectedLote.planoCoordinates"
+                            (click)="deleteLotePolygon()">
+                            ❌ Eliminar Polígono
+                        </button>
+                    </div>
+
+                    <div class="alert alert-sm alert-info mt-3" *ngIf="selectedLote">
+                        <small>
+                            Dibuja el lote dentro del fraccionamiento.
+                        </small>
+                    </div>
+                </div>
+
+                <!-- Columna Derecha: Área de Mapa -->
+                <div class="col-md-9">
+                     <div id="map-lotes" 
+                        style="height: 700px; width: 100%; z-index: 100; position: relative; pointer-events: auto !important;">
+                     </div>
+
+                    <div *ngIf="!selectedFraccionamiento" class="text-center p-5 text-muted">
+                        Selecciona un fraccionamiento para comenzar.
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- TAB 3: Polígonos sobre Plano (Imagen) -->
+        <div *ngIf="activeTab === 'plano'" class="tab-pane-content">
+            <div class="row">
+
+                <!-- Columna Izquierda: Selectores y Controles -->
+                <div class="col-md-3">
+
+                    <!-- Selector de Fraccionamiento -->
+                    <div class="form-group" *ngIf="!fraccionamientoId">
+                        <label>Fraccionamiento</label>
+                        <select class="form-control" [(ngModel)]="selectedFraccionamientoId"
+                            (change)="onPlanoFraccionamientoChange()">
+                            <option value="">-- Seleccionar --</option>
+                            <option *ngFor="let f of fraccionamientos" [value]="f.id">
+                                {{ f.nombre }}
+                            </option>
+                        </select>
+                    </div>
+
+                    <!-- Upload / Replace plano image -->
+                    <div *ngIf="selectedFraccionamiento && !selectedFraccionamiento.imagenPlanoUrl" class="mt-2">
+                        <div class="alert alert-warning mb-2">
+                            <small>⚠️ No hay imagen de plano. Sube una para comenzar:</small>
+                        </div>
+                        <label class="btn btn-outline-primary btn-block btn-sm">
+                            📤 Subir Imagen del Plano
+                            <input type="file" accept="image/*" hidden (change)="uploadPlanoImage($event)">
+                        </label>
+                    </div>
+                    <div *ngIf="selectedFraccionamiento && selectedFraccionamiento.imagenPlanoUrl && !planoImageLoaded" class="mt-2">
+                        <small class="text-muted">Cargando imagen del plano...</small>
+                    </div>
+                    <div *ngIf="planoImageLoaded" class="mt-2">
+                        <label class="btn btn-outline-secondary btn-block btn-sm">
+                            🔄 Reemplazar Imagen del Plano
+                            <input type="file" accept="image/*" hidden (change)="uploadPlanoImage($event)">
+                        </label>
+                    </div>
+
+                    <!-- Selector de Lote -->
+                    <div class="form-group mt-2" *ngIf="lotes.length > 0 && planoImageLoaded">
+                        <label>Lote a Editar</label>
+                        <select class="form-control" [(ngModel)]="selectedLoteId" (change)="onPlanoLoteChange()">
+                            <option value="">-- Seleccionar Lote --</option>
+                            <option *ngFor="let lote of lotes" [value]="lote.id">
+                                {{ lote.numeroLote || lote.numero }} - {{ lote.manzana }} ({{ lote.estatus }})
+                            </option>
+                        </select>
+                    </div>
+
+                    <!-- Datos del Lote -->
+                    <div *ngIf="selectedLote && planoImageLoaded" class="card mt-3 mb-3">
+                        <div class="card-header bg-success text-white">
+                            <strong>🗺️ Lote {{ selectedLote.numeroLote || selectedLote.numero }}</strong>
+                        </div>
+                        <div class="card-body p-2">
+                            <p class="mb-1"><small><strong>Manzana:</strong> {{ selectedLote.manzana }}</small></p>
+                            <p class="mb-1"><small><strong>Estatus:</strong> {{ selectedLote.estatus }}</small></p>
+                            <p class="mb-1"><small><strong>Polígono:</strong> {{ selectedLote.planoCoordinates ? '✅ Definido' : '❌ Sin definir' }}</small></p>
+                        </div>
+                    </div>
+
+                    <!-- Botones de Acción para Plano -->
+                    <div class="mt-3" *ngIf="selectedLote && planoImageLoaded">
+                        <button class="btn btn-primary btn-block mt-2"
+                            *ngIf="selectedLote.planoCoordinates && currentPoints.length === 0"
+                            (click)="startNewPlanoLoteDrawing()">
+                            ✨ Nuevo Polígono
+                        </button>
+                        <button class="btn btn-success btn-block mt-2"
+                            (click)="savePlanoLotePolygon($event)">
+                            💾 Guardar en Plano ({{currentPoints.length}} pts)
+                        </button>
+                        <button class="btn btn-warning btn-block mt-2" (click)="clearPoints()">
+                            🗑️ Limpiar Puntos
+                        </button>
+                        <button class="btn btn-danger btn-block mt-2"
+                            *ngIf="selectedLote.planoCoordinates"
+                            (click)="deletePlanoLotePolygon()">
+                            ❌ Eliminar Polígono
+                        </button>
+                    </div>
+
+                    <div class="alert alert-info mt-3" *ngIf="planoImageLoaded">
+                        <small>
+                            <strong>Instrucciones:</strong>
+                            <ul class="pl-3 mb-0">
+                                <li>Selecciona un lote</li>
+                                <li>Haz clic sobre la imagen para agregar vértices</li>
+                                <li>Guarda el polígono cuando termines</li>
+                            </ul>
+                        </small>
+                    </div>
+
+                    <!-- Legend -->
+                    <div class="mt-3" *ngIf="planoImageLoaded">
+                        <small><strong>Leyenda:</strong></small>
+                        <div class="d-flex flex-wrap gap-2 mt-1">
+                            <span class="badge" style="background: #28a745; color: white;">Disponible</span>
+                            <span class="badge" style="background: #007bff; color: white;">Apartado</span>
+                            <span class="badge" style="background: #ffc107; color: black;">Contratado</span>
+                            <span class="badge" style="background: #8B4513; color: white;">Vendido</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Columna Derecha: Mapa con Imagen del Plano -->
+                <div class="col-md-9">
+                    <div id="map-plano" 
+                        style="height: 700px; width: 100%; z-index: 100; position: relative; pointer-events: auto !important; background: #f0f0f0;">
+                    </div>
+
+                    <div *ngIf="!selectedFraccionamiento" class="text-center p-5 text-muted">
+                        Selecciona un fraccionamiento para comenzar.
+                    </div>
+                    <div *ngIf="selectedFraccionamiento && !selectedFraccionamiento.imagenPlanoUrl" class="text-center p-5 text-muted">
+                        Este fraccionamiento no tiene imagen de plano configurada.
+                    </div>
+                </div>
+            </div>
+        </div>
+
+    </div>
+</div>

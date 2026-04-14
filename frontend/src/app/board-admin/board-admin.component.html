@@ -1,0 +1,602 @@
+<div class="container">
+    <header class="jumbotron">
+        <h3>{{ boardTitle }}</h3>
+    </header>
+
+    <div *ngIf="content">
+        <div class="alert alert-danger">{{content}}</div>
+    </div>
+
+    <!-- Stats Cards -->
+    <div *ngIf="!stats && isAdmin" class="text-center my-5">
+        <div class="spinner-border text-primary" role="status">
+            <span class="sr-only">Cargando estadísticas...</span>
+        </div>
+        <p>Cargando panel de control...</p>
+        <p class="text-danger" *ngIf="content">{{ content }}</p>
+    </div>
+
+    <div class="row mb-4" *ngIf="stats && isAdmin">
+        <div class="col-md-4">
+            <div class="card text-white bg-success mb-3 h-100">
+                <div class="card-header font-weight-bold">Lotes Disponibles</div>
+                <div class="card-body">
+                    <h1 class="card-title text-center">{{ stats.lotesDisponibles }}</h1>
+                    <p class="card-text text-center"><small>De {{ stats.totalLotes }} lotes totales</small></p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card text-white bg-info mb-3 h-100" routerLink="/admin/crm/leads" style="cursor: pointer;">
+                <div class="card-header font-weight-bold">Nuevos Prospectos</div>
+                <div class="card-body">
+                    <h1 class="card-title text-center text-white">{{ stats.totalLeads }}</h1>
+                    <p class="card-text text-center"><small>Capturados vía Web/Chatbot</small></p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card text-white bg-primary mb-3 h-100" routerLink="/admin/crm/opportunities"
+                style="cursor: pointer;">
+                <div class="card-header font-weight-bold">Oportunidades</div>
+                <div class="card-body">
+                    <h1 class="card-title text-center text-white">{{ stats.totalOpportunities }}</h1>
+                    <p class="card-text text-center"><small>Seguimiento de ventas</small></p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Navigation Tabs -->
+    <div class="card mb-4 border-0 shadow-sm">
+        <div class="card-body p-2">
+            <ul class="nav nav-pills nav-fill">
+                <li class="nav-item" *ngIf="isAdmin">
+                    <button class="nav-link" [class.active]="currentView === 'dashboard'" (click)="setView('dashboard')">
+                        <i class="fas fa-th-large mr-2"></i> Dashboard
+                    </button>
+                </li>
+                <li class="nav-item">
+                    <button class="nav-link" [class.active]="currentView === 'contracts'" (click)="setView('contracts')">
+                        <i class="fas fa-file-contract mr-2"></i> Contratos
+                    </button>
+                </li>
+                <li class="nav-item">
+                    <button class="nav-link" [class.active]="currentView === 'payments'" (click)="setView('payments')">
+                        <i class="fas fa-money-bill-wave mr-2"></i> Pagos
+                    </button>
+                </li>
+            </ul>
+        </div>
+    </div>
+
+    <!-- Dashboard View -->
+    <div *ngIf="currentView === 'dashboard'">
+        <div class="card mb-4 border-0 shadow-sm">
+            <div class="card-body">
+                <div class="d-flex justify-content-between align-items-center mb-3">
+                    <h4 class="mb-0">Inventario y Configuración</h4>
+                    <button class="btn btn-warning btn-sm" (click)="showPolygonEditor = !showPolygonEditor">
+                        <i class="fas" [ngClass]="showPolygonEditor ? 'fa-list' : 'fa-draw-polygon'"></i>
+                        {{ showPolygonEditor ? ' Ver Listados' : ' Editor de Polígonos' }}
+                    </button>
+                </div>
+                
+                <div class="row">
+                    <div class="col-md-3">
+                        <button class="btn btn-outline-primary btn-block mb-2" routerLink="/admin/clientes">
+                            <i class="fas fa-users mr-1"></i> Clientes
+                        </button>
+                    </div>
+                    <div class="col-md-3">
+                        <button class="btn btn-outline-info btn-block mb-2" routerLink="/admin/crm/leads">
+                            <i class="fas fa-bullseye mr-1"></i> Prospectos
+                        </button>
+                    </div>
+                    <div class="col-md-3">
+                        <button class="btn btn-outline-success btn-block mb-2" routerLink="/admin/crm/opportunities">
+                            <i class="fas fa-handshake mr-1"></i> Oportunidades
+                        </button>
+                    </div>
+                    <div class="col-md-3">
+                        <button class="btn btn-outline-secondary btn-block mb-2" (click)="setView('contracts')">
+                            <i class="fas fa-file-invoice mr-1"></i> Ver Contratos
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <app-polygon-editor *ngIf="showPolygonEditor" class="mb-4 d-block"></app-polygon-editor>
+
+        <!-- Lotes Management via Component -->
+        <app-lote-list [readOnly]="false"></app-lote-list>
+
+        <!-- Fraccionamientos Management via Component -->
+        <app-fraccionamiento-list [readOnly]="false" class="mt-3 d-block"></app-fraccionamiento-list>
+    </div>
+
+    <!-- Contracts View -->
+    <div *ngIf="currentView === 'contracts'" class="animate-fade-in">
+        <div class="card border-0 shadow-sm mb-4">
+            <div class="card-header bg-white border-bottom-0 d-flex justify-content-between align-items-center pt-4 px-4">
+                <h4 class="mb-0 text-primary"><i class="fas fa-file-signature text-muted mr-2"></i>Listado de Contratos</h4>
+                <button class="btn btn-primary btn-sm rounded-pill px-3 shadow-sm" (click)="openContractModal()">
+                    <i class="fas fa-plus mr-1"></i> Nuevo Contrato
+                </button>
+            </div>
+            <div class="card-body p-4">
+                <div class="table-responsive">
+                    <table class="table table-hover align-middle">
+                        <thead class="text-muted small text-uppercase bg-light">
+                            <tr>
+                                <th>Cliente</th>
+                                <th>Lote / Fracc.</th>
+                                <th>Monto Total</th>
+                                <th>Enganche</th>
+                                <th>Estatus</th>
+                                <th class="text-right">Acciones</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr *ngFor="let c of todosLosContratos">
+                                <td>
+                                    <div class="font-weight-bold">{{ c.cliente?.nombre }} {{ c.cliente?.apellidos }}</div>
+                                    <small class="text-muted">{{ c.cliente?.email }}</small>
+                                </td>
+                                <td>
+                                    <div>Lote {{ c.lote?.numeroLote }}</div>
+                                    <small class="badge-fracc">{{ c.lote?.fraccionamiento?.nombre }}</small>
+                                </td>
+                                <td class="font-weight-bold">{{ c.montoTotal | currency:'MXN' }}</td>
+                                <td>{{ c.enganche | currency:'MXN' }}</td>
+                                <td>
+                                    <span class="badge-status badge-status-active">Activo</span>
+                                </td>
+                                <td class="text-right">
+                                    <button class="btn btn-sm btn-outline-info mr-1" (click)="verHistorial(c.lote)" title="Ver Historial">
+                                        <i class="fas fa-eye text-primary"></i>
+                                    </button>
+                                    <button class="btn btn-sm btn-outline-success" (click)="setView('payments'); paymentData.clienteId = c.cliente.id; onPaymentClientSelect(); paymentData.contratoId = c.id;" title="Registrar Pago">
+                                        <i class="fas fa-money-bill-alt"></i>
+                                    </button>
+                                </td>
+                            </tr>
+                            <tr *ngIf="todosLosContratos.length === 0">
+                                <td colspan="6" class="text-center py-5 text-muted">
+                                    <i class="fas fa-folder-open fa-3x mb-3 d-block opacity-25"></i>
+                                    No hay contratos registrados.
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Payments View -->
+    <div *ngIf="currentView === 'payments'" class="animate-fade-in">
+        <div class="card border-0 shadow-sm mb-4">
+            <div class="card-header bg-white border-bottom-0 d-flex justify-content-between align-items-center pt-4 px-4">
+                <h4 class="mb-0 text-dark"><i class="fas fa-wallet text-muted mr-2"></i>Historial General de Pagos</h4>
+                <button class="btn btn-success btn-sm rounded-pill px-3 shadow-sm" (click)="openPaymentModal()">
+                    <i class="fas fa-plus mr-1"></i> Registrar Pago
+                </button>
+            </div>
+            <div class="card-body p-4">
+                <div class="input-group mb-4 shadow-sm rounded-pill bg-light border p-1" style="max-width: 500px;">
+                    <div class="input-group-prepend border-0">
+                        <span class="input-group-text bg-transparent border-0"><i class="fas fa-search text-muted"></i></span>
+                    </div>
+                    <input type="text" class="form-control bg-transparent border-0" placeholder="Buscar por cliente, referencia o concepto..." 
+                           [(ngModel)]="paymentSearchTerm" (keyup)="searchPayments()">
+                </div>
+
+                <div class="table-responsive">
+                    <table class="table table-hover">
+                        <thead class="text-muted small text-uppercase bg-light">
+                            <tr>
+                                <th>Fecha</th>
+                                <th>Cliente</th>
+                                <th>Lote / Contrato</th>
+                                <th>Concepto / Ref</th>
+                                <th>Monto</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr *ngFor="let p of foundPayments">
+                                <td>{{ p.fechaPago | date:'shortDate' }}</td>
+                                <td class="font-weight-bold">{{ p.contrato?.cliente?.nombre }} {{ p.contrato?.cliente?.apellidos }}</td>
+                                <td>
+                                    <div class="small">Lote {{ p.contrato?.lote?.numeroLote }}</div>
+                                    <small class="text-muted">ID: #{{ p.contrato?.id }}</small>
+                                </td>
+                                <td>
+                                    <div class="small">{{ p.concepto }}</div>
+                                    <small class="text-muted text-truncate d-inline-block" style="max-width: 150px;">{{ p.referencia }}</small>
+                                </td>
+                                <td class="font-weight-bold text-success">{{ p.monto | currency:'MXN' }}</td>
+                            </tr>
+                            <tr *ngIf="foundPayments.length === 0">
+                                <td colspan="5" class="text-center py-5 text-muted">
+                                    No se encontraron pagos.
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+
+
+
+    <!-- Contract Modal -->
+    <div class="modal-backdrop fade show" *ngIf="showContractModal"></div>
+    <div class="modal fade show" tabindex="-1" role="dialog" [style.display]="showContractModal ? 'block' : 'none'"
+        *ngIf="showContractModal">
+        <div class="modal-dialog modal-lg modal-dialog-centered" role="document">
+            <div class="modal-content border-0 shadow-lg" style="border-radius: 20px; overflow: hidden;">
+                <div class="modal-header bg-primary text-white p-4">
+                    <h5 class="modal-title font-weight-bold"><i class="fas fa-file-contract mr-2"></i>Generar Nuevo Contrato</h5>
+                    <button type="button" class="close text-white" (click)="showContractModal = false">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                <div class="modal-body p-4 bg-light">
+                    <div *ngIf="contractSuccessMsg" class="alert alert-success border-0 shadow-sm animate-fade-in">{{ contractSuccessMsg }}</div>
+                    <div *ngIf="contractErrorMsg" class="alert alert-danger border-0 shadow-sm animate-fade-in">{{ contractErrorMsg }}</div>
+
+                    <form (ngSubmit)="submitContract()">
+                        <!-- Section 1: Parties -->
+                        <div class="card mb-3 border-0 shadow-sm" style="border-radius: 12px;">
+                            <div class="card-body">
+                                <div class="d-flex justify-content-between align-items-center mb-3">
+                                    <h6 class="text-muted text-uppercase mb-0 small font-weight-bold">Información de las Partes</h6>
+                                    <button type="button" class="btn btn-sm" [class.btn-outline-primary]="!showNewClientForm" [class.btn-warning]="showNewClientForm" (click)="showNewClientForm = !showNewClientForm">
+                                        <i class="fas" [ngClass]="showNewClientForm ? 'fa-search' : 'fa-plus-circle'"></i>
+                                        {{ showNewClientForm ? ' Buscar Existente' : ' Nuevo Cliente' }}
+                                    </button>
+                                </div>
+
+                                <div class="form-group mb-3" *ngIf="!showNewClientForm">
+                                    <label class="small font-weight-bold"><i class="fas fa-user-tie text-primary mr-1"></i> Cliente</label>
+                                    <select class="form-control custom-select bg-light border-0" [(ngModel)]="contractData.clienteId" name="clienteId" [required]="!showNewClientForm">
+                                        <option [ngValue]="null">-- Seleccionar Cliente --</option>
+                                        <option *ngFor="let c of clientes" [ngValue]="c.id">
+                                            {{ c.nombre }} {{ c.apellidos }}
+                                        </option>
+                                    </select>
+                                </div>
+
+                                <!-- New Client Fields -->
+                                <div *ngIf="showNewClientForm" class="animate-fade-in mb-3 border-left-primary pl-3 py-2 bg-white rounded shadow-sm">
+                                    <div class="form-row">
+                                        <div class="form-group col-md-6">
+                                            <input type="text" class="form-control form-control-sm bg-light mb-2" placeholder="Nombre(s)*" [(ngModel)]="newClientData.nombre" name="nc_nombre" required>
+                                        </div>
+                                        <div class="form-group col-md-6">
+                                            <input type="text" class="form-control form-control-sm bg-light mb-2" placeholder="Apellidos*" [(ngModel)]="newClientData.apellidos" name="nc_apell" required>
+                                        </div>
+                                    </div>
+                                    <div class="form-row">
+                                        <div class="form-group col-md-8">
+                                            <input type="email" class="form-control form-control-sm bg-light mb-2" placeholder="Email (Usuario)*" [(ngModel)]="newClientData.email" name="nc_email" required>
+                                        </div>
+                                        <div class="form-group col-md-4">
+                                            <input type="text" class="form-control form-control-sm bg-light mb-2" placeholder="Teléfono*" [(ngModel)]="newClientData.telefono" name="nc_tel" required>
+                                        </div>
+                                    </div>
+                                    <div class="form-group mb-0">
+                                        <input type="text" class="form-control form-control-sm bg-light" placeholder="Dirección (Opcional)" [(ngModel)]="newClientData.direccion" name="nc_dir">
+                                    </div>
+                                </div>
+
+                                <div class="form-row">
+                                    <div class="form-group col-md-6 mb-0">
+                                        <label class="small font-weight-bold"><i class="fas fa-map-marker-alt text-danger mr-1"></i> Lote Disponible</label>
+                                        <select class="form-control custom-select bg-light border-0" [(ngModel)]="loteSelectedForContract" name="loteId"
+                                            (change)="onLoteSelectForContract(loteSelectedForContract)" required>
+                                            <option [ngValue]="null">-- Seleccionar Lote --</option>
+                                            <ng-container *ngFor="let l of lotes">
+                                                <option *ngIf="l.estatus === 'DISPONIBLE'" [ngValue]="l">
+                                                    {{ l.fraccionamiento?.nombre || 'Indep.' }} - Lote {{ l.numeroLote }}
+                                                </option>
+                                            </ng-container>
+                                        </select>
+                                    </div>
+                                    <div class="form-group col-md-6 mb-0">
+                                        <label class="small font-weight-bold"><i class="fas fa-user-tag text-info mr-1"></i> Vendedor (Opcional)</label>
+                                        <select class="form-control custom-select bg-light border-0" [(ngModel)]="contractData.vendedorId" name="vendedorId">
+                                            <option value="">-- Seleccionar Vendedor --</option>
+                                            <option *ngFor="let v of vendedores" [value]="v.id">
+                                                {{ v.username }}
+                                            </option>
+                                        </select>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Section 2: Financials -->
+                        <div class="card mb-3 border-0 shadow-sm" style="border-radius: 12px;">
+                            <div class="card-body">
+                                <h6 class="text-muted text-uppercase mb-3 small font-weight-bold">Esquema Financiero</h6>
+                                <div class="form-row">
+                                    <div class="form-group col-md-4">
+                                        <label class="small font-weight-bold">Monto Total</label>
+                                        <div class="input-group">
+                                            <div class="input-group-prepend"><span class="input-group-text bg-light border-0">$</span></div>
+                                            <input type="number" class="form-control bg-light border-0" [(ngModel)]="contractData.montoTotal" name="total" disabled>
+                                        </div>
+                                    </div>
+                                    <div class="form-group col-md-4">
+                                        <label class="small font-weight-bold">Enganche (Mín 10%)</label>
+                                        <div class="input-group">
+                                            <div class="input-group-prepend"><span class="input-group-text bg-light border-0">$</span></div>
+                                            <input type="number" class="form-control bg-light border-0" [(ngModel)]="contractData.enganche" name="enganche">
+                                        </div>
+                                    </div>
+                                    <div class="form-group col-md-4">
+                                        <label class="small font-weight-bold text-success font-weight-bold">Mensualidad</label>
+                                        <div class="h5 mt-2 text-success font-weight-bold">
+                                            {{ estimatedMonthlyPayment | currency:'MXN' }}
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="form-row">
+                                    <div class="form-group col-md-6 mb-0">
+                                        <label class="small font-weight-bold">Plazo (Meses)</label>
+                                        <input type="number" class="form-control bg-light border-0" [(ngModel)]="contractData.plazoMeses" name="plazo">
+                                    </div>
+                                    <div class="form-group col-md-6 mb-0">
+                                        <label class="small font-weight-bold">Tasa Anual (%)</label>
+                                        <input type="number" class="form-control bg-light border-0" [(ngModel)]="contractData.tasaAnual" name="tasa">
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Section 3: Initial Payment -->
+                        <div class="card border-0 shadow-sm" style="border-radius: 12px; border-left: 4px solid #ffc107 !important;">
+                            <div class="card-body">
+                                <div class="form-check mb-2">
+                                    <input type="checkbox" class="form-check-input" id="checkDownPayment" [(ngModel)]="registerDownPayment" name="registerDownPayment">
+                                    <label class="form-check-label fw-bold text-dark" for="checkDownPayment">¿Registrar Enganche Ahora?</label>
+                                </div>
+                                <div *ngIf="registerDownPayment" class="animate-fade-in">
+                                    <label class="small font-weight-bold mb-1">Referencia del Pago</label>
+                                    <input type="text" class="form-control bg-light border-0" [(ngModel)]="downPaymentReference" name="downRef" placeholder="Ej: Transferencia Santander #12345" [required]="registerDownPayment">
+                                </div>
+                            </div>
+                        </div>
+
+                        <button type="submit" class="btn btn-primary btn-block btn-lg mt-4 shadow" style="border-radius: 12px;" [disabled]="isSubmittingContract">
+                            <i class="fas" [ngClass]="isSubmittingContract ? 'fa-spinner fa-spin' : 'fa-check-circle'"></i>
+                            {{ isSubmittingContract ? ' Procesando...' : ' Formalizar Contrato' }}
+                        </button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Payment Modal -->
+    <div class="modal-backdrop fade show" *ngIf="showPaymentModal"></div>
+    <div class="modal fade show" tabindex="-1" role="dialog" [style.display]="showPaymentModal ? 'block' : 'none'"
+        *ngIf="showPaymentModal">
+        <div class="modal-dialog modal-dialog-centered" role="document">
+            <div class="modal-content border-0 shadow-lg" style="border-radius: 20px;">
+                <div class="modal-header bg-success text-white p-4">
+                    <h5 class="modal-title font-weight-bold"><i class="fas fa-hand-holding-usd mr-2"></i>Registrar Cobro / Pago</h5>
+                    <button type="button" class="close text-white" (click)="showPaymentModal = false">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                <div class="modal-body p-4 bg-light">
+                    <div *ngIf="paymentSuccessMsg" class="alert alert-success border-0 shadow-sm animate-fade-in">{{ paymentSuccessMsg }}</div>
+                    <div *ngIf="paymentErrorMsg" class="alert alert-danger border-0 shadow-sm animate-fade-in">{{ paymentErrorMsg }}</div>
+
+                    <form (ngSubmit)="submitPayment()">
+                        <div class="card mb-3 border-0 shadow-sm" style="border-radius: 12px;">
+                            <div class="card-body">
+                                <div class="form-group">
+                                    <label class="small font-weight-bold text-muted">Cliente</label>
+                                    <select class="form-control custom-select bg-light border-0" [(ngModel)]="paymentData.clienteId" name="clienteId"
+                                        (change)="onPaymentClientSelect()" required>
+                                        <option [ngValue]="null">-- Seleccionar Cliente --</option>
+                                        <option *ngFor="let c of clientes" [ngValue]="c.id">
+                                            {{ c.nombre }} {{ c.apellidos }}
+                                        </option>
+                                    </select>
+                                </div>
+        
+                                <div class="form-group" *ngIf="paymentData.clienteId">
+                                    <label class="small font-weight-bold text-muted">Contrato Activo</label>
+                                    <select class="form-control custom-select bg-light border-0" [(ngModel)]="paymentData.contratoId" name="contratoId" [required]="paymentData.clienteId">
+                                        <option [ngValue]="null">-- Seleccionar Contrato --</option>
+                                        <option *ngFor="let c of contratosFiltradosPago" [ngValue]="c.id">
+                                            Lote {{ c.lote?.numeroLote }} ({{ c.lote?.fraccionamiento?.nombre }})
+                                        </option>
+                                    </select>
+                                    <small *ngIf="contratosFiltradosPago.length === 0" class="text-danger mt-1 d-block">Este cliente no tiene contratos activos.</small>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="card mb-3 border-0 shadow-sm" style="border-radius: 12px;" *ngIf="paymentData.contratoId">
+                            <div class="card-body">
+                                <div class="form-row">
+                                    <div class="form-group col-md-6">
+                                        <label class="small font-weight-bold">Monto a Cobrar</label>
+                                        <div class="input-group">
+                                            <div class="input-group-prepend"><span class="input-group-text bg-light border-0">$</span></div>
+                                            <input type="number" class="form-control bg-light border-0 font-weight-bold text-success" [(ngModel)]="paymentData.monto" name="monto" required>
+                                        </div>
+                                    </div>
+                                    <div class="form-group col-md-6">
+                                        <label class="small font-weight-bold">Concepto</label>
+                                        <input type="text" class="form-control bg-light border-0" [(ngModel)]="paymentData.concepto" name="concepto" placeholder="Mensualidad #X">
+                                    </div>
+                                </div>
+                                <div class="form-group">
+                                    <label class="small font-weight-bold">Referencia (No. Transferencia, etc.)</label>
+                                    <input type="text" class="form-control bg-light border-0" [(ngModel)]="paymentData.referencia" name="referencia" placeholder="Num. de transferencia o referencia bancaria">
+                                </div>
+                                <div class="form-group mb-0">
+                                    <label class="small font-weight-bold">
+                                        <i class="fas fa-paperclip mr-1 text-danger"></i> Comprobante de Pago <span class="text-danger">*</span>
+                                    </label>
+                                    <div class="custom-file">
+                                        <input type="file" class="custom-file-input" id="comprobanteFile"
+                                               accept="image/*,.pdf" (change)="onPaymentFileSelected($event)">
+                                        <label class="custom-file-label" for="comprobanteFile">
+                                            {{ paymentFile ? paymentFile.name : 'Adjuntar comprobante (imagen o PDF)...' }}
+                                        </label>
+                                    </div>
+                                    <small class="text-muted">Obligatorio. Se requiere adjuntar evidencia del pago.</small>
+                                </div>
+                            </div>
+                        </div>
+
+                        <button type="submit" class="btn btn-success btn-block btn-lg shadow mt-2" style="border-radius: 12px;" [disabled]="!paymentData.contratoId">
+                            <i class="fas fa-save mr-2"></i>Guardar Registro
+                        </button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- History Modal -->
+    <div class="modal-backdrop fade show" *ngIf="showHistoryModal"></div>
+    <div class="modal fade show" tabindex="-1" role="dialog" [style.display]="showHistoryModal ? 'block' : 'none'"
+        *ngIf="showHistoryModal">
+        <div class="modal-dialog modal-lg" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Historial de Pagos y Contrato</h5>
+                    <button type="button" class="close" (click)="showHistoryModal = false">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                <div class="modal-body" *ngIf="historyContract">
+                    <!-- Contract & Client Details -->
+                    <div class="alert alert-secondary">
+                        <div class="row">
+                            <div class="col-md-6">
+                                <strong>Cliente:</strong> {{ historyContract.cliente?.nombre }} {{
+                                historyContract.cliente?.apellidos }}<br>
+                                <strong>Teléfono:</strong> {{ historyContract.cliente?.telefono }}
+                            </div>
+                            <div class="col-md-6 text-right">
+                                <strong>Lote:</strong> {{ historyContract.lote?.numeroLote }} ({{
+                                historyContract.lote?.fraccionamiento?.nombre }})<br>
+                                <strong>Precio Total:</strong> {{ historyContract.montoTotal | currency:'MXN' }}<br>
+                                <strong>Mensualidad:</strong> {{ historyContract.mensualidad | currency:'MXN' }}
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Payments Table -->
+                    <h5 class="mt-4">Pagos Realizados</h5>
+                    <div *ngIf="pagosActuales.length === 0" class="text-muted">No hay pagos registrados aún.</div>
+                    <table class="table table-striped" *ngIf="pagosActuales.length > 0">
+                        <thead>
+                            <tr>
+                                <th>Fecha</th>
+                                <th>Concepto</th>
+                                <th>Referencia</th>
+                                <th>Monto</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr *ngFor="let p of pagosActuales">
+                                <td>{{ p.fechaPago | date:'shortDate' }}</td>
+                                <td>{{ p.concepto }}</td>
+                                <td>{{ p.referencia }}</td>
+                                <td>{{ p.monto | currency:'MXN' }}</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-info" (click)="downloadReport()">
+                        <i class="fa fa-file-pdf"></i> Descargar PDF
+                    </button>
+                    <button type="button" class="btn btn-success" (click)="addPaymentFromHistory()">
+                        ➕ Registrar Nuevo Pago
+                    </button>
+                    <button type="button" class="btn btn-secondary" (click)="showHistoryModal = false">Cerrar</button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Fraccionamiento Detail Modal -->
+<div class="modal-backdrop fade show" *ngIf="showFraccDetailModal"></div>
+<div class="modal fade show" tabindex="-1" role="dialog" [style.display]="showFraccDetailModal ? 'block' : 'none'"
+    *ngIf="showFraccDetailModal">
+    <div class="modal-dialog modal-xl" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">{{ selectedFracc?.nombre }}</h5>
+                <button type="button" class="close" (click)="showFraccDetailModal = false">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <div class="row">
+                    <div class="col-md-4">
+                        <img [src]="getImageUrl(selectedFracc?.logoUrl) || 'assets/no-image.png'" class="img-fluid rounded mb-3"
+                            style="max-height: 150px;">
+                        <p><strong>Ubicación:</strong> {{ selectedFracc?.ubicacion }}</p>
+                        <p><strong>Descripción:</strong> {{ selectedFracc?.descripcion }}</p>
+                        <div *ngIf="selectedFracc?.coordenadasGeo" class="alert alert-info py-2">
+                            <small *ngIf="!selectedFracc.coordenadasGeo.startsWith('[')">📍 {{
+                                selectedFracc.coordenadasGeo }}</small>
+                            <small *ngIf="selectedFracc.coordenadasGeo.startsWith('[')">🔷 Área de Polígono
+                                Definida</small>
+                        </div>
+                    </div>
+                    <div class="col-md-8">
+                        <h5>Lotes en este Fraccionamiento ({{ fraccLotes.length }})</h5>
+                        <table class="table table-sm table-striped">
+                            <thead>
+                                <tr>
+                                    <th>Lote</th>
+                                    <th>Manzana</th>
+                                    <th>Precio</th>
+                                    <th>Área</th>
+                                    <th>Estatus</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr *ngFor="let fl of fraccLotes">
+                                    <td>{{ fl.numeroLote }}</td>
+                                    <td>{{ fl.manzana }}</td>
+                                    <td>{{ fl.precioTotal | currency:'MXN' }}</td>
+                                    <td>{{ fl.areaMetrosCuadrados }} m²</td>
+                                    <td class="text-center align-middle">
+                                        <span class="badge badge-pill shadow-sm px-3 py-2 text-dark font-weight-bold" 
+                                              [ngClass]="{
+                                                'badge-success': fl.estatus === 'DISPONIBLE',
+                                                'badge-danger': fl.estatus === 'VENDIDO',
+                                                'badge-warning': fl.estatus === 'APARTADO',
+                                                'badge-info': fl.estatus === 'CONTRATADO'
+                                              }">{{ fl.estatus }}</span>
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" (click)="showFraccDetailModal = false">Cerrar</button>
+            </div>
+        </div>
+    </div>
+</div>

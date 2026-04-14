@@ -1,0 +1,118 @@
+<div class="card border-info">
+    <div class="card-body">
+        <h4>Inventario de Fraccionamientos</h4>
+        <button class="btn btn-info mb-3" (click)="isCreatingFracc ? resetForm() : isCreatingFracc = true">
+            {{ isCreatingFracc ? 'Cancelar' : 'Nuevo Fraccionamiento' }}
+        </button>
+
+        <!-- Create Form -->
+        <form *ngIf="isCreatingFracc" (ngSubmit)="onCreateFracc()" class="mb-4 p-3 bg-light border rounded">
+            <div class="form-row">
+                <div class="col-md-6">
+                    <label>Nombre</label>
+                    <input type="text" class="form-control" [(ngModel)]="newFracc.nombre" name="nombre" required>
+                </div>
+                <div class="col-md-6">
+                    <label>Ubicación (Texto)</label>
+                    <input type="text" class="form-control" [(ngModel)]="newFracc.ubicacion" name="ubicacion">
+                </div>
+            </div>
+            <div class="form-group mt-2">
+                <label>Descripción</label>
+                <textarea class="form-control" [(ngModel)]="newFracc.descripcion" name="descripcion"></textarea>
+            </div>
+            <div class="form-group">
+                <label>URL Logo</label>
+                <input type="text" class="form-control" [(ngModel)]="newFracc.logoUrl" name="logoUrl">
+            </div>
+            <!-- Map Picker would need to be passed or handled, for now simplifying or checking if needed -->
+             <div class="form-group">
+                <label>Ubicación / Área (Mapa)</label>
+                <!-- Reuse LocationPicker if available globally or import it -->
+                <p class="text-muted small">Coodenadas se pueden editar en el mapa general.</p>
+                <input type="text" class="form-control" [(ngModel)]="newFracc.coordenadasGeo" name="coordenadasGeo" placeholder="Coordenadas">
+            </div>
+            <button class="btn btn-success mt-2">{{ isEditingFracc ? 'Actualizar' : 'Guardar' }} Fraccionamiento</button>
+        </form>
+
+        <table class="table table-bordered">
+            <thead>
+                <tr>
+                    <th>Nombre</th>
+                    <th>Ubicación</th>
+                    <th>Acciones</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr *ngFor="let f of fraccionamientos">
+                    <td>{{ f.nombre }}</td>
+                    <td>{{ f.ubicacion }}</td>
+                    <td>
+                        <button class="btn btn-sm btn-info mr-2" (click)="viewFraccDetail(f)">Ver Detalle / Lotes</button>
+                        <button class="btn btn-sm btn-primary mr-2" (click)="editFracc(f)">Editar</button>
+                        <button *ngIf="canDelete()" class="btn btn-sm btn-danger" (click)="deleteFracc(f.id)">Eliminar</button>
+                    </td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<!-- Fraccionamiento Detail Modal (Copied from BoardAdmin) -->
+<div class="modal-backdrop fade show" *ngIf="showFraccDetailModal"></div>
+<div class="modal fade show" tabindex="-1" role="dialog" [style.display]="showFraccDetailModal ? 'block' : 'none'"
+    *ngIf="showFraccDetailModal">
+    <div class="modal-dialog modal-xl" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">{{ selectedFracc?.nombre }}</h5>
+                <button type="button" class="close" (click)="showFraccDetailModal = false">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <div class="row">
+                    <div class="col-md-4">
+                        <img [src]="getImageUrl(selectedFracc?.logoUrl) || 'assets/no-image.png'" class="img-fluid rounded mb-3"
+                            style="max-height: 150px;">
+                        <p><strong>Ubicación:</strong> {{ selectedFracc?.ubicacion }}</p>
+                        <p><strong>Descripción:</strong> {{ selectedFracc?.descripcion }}</p>
+                    </div>
+                    <div class="col-md-8">
+                        <h5>Lotes en este Fraccionamiento ({{ fraccLotes.length }})</h5>
+                        <table class="table table-sm table-striped">
+                            <thead>
+                                <tr>
+                                    <th>Lote</th>
+                                    <th>Manzana</th>
+                                    <th>Precio</th>
+                                    <th>Área</th>
+                                    <th>Estatus</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr *ngFor="let fl of fraccLotes">
+                                    <td>{{ fl.numeroLote }}</td>
+                                    <td>{{ fl.manzana }}</td>
+                                    <td>{{ fl.precioTotal | currency:'MXN' }}</td>
+                                    <td>{{ fl.areaMetrosCuadrados }} m²</td>
+                                    <td>
+                                        <span class="badge" [ngClass]="{
+                                                'bg-success text-white': fl.estatus === 'DISPONIBLE',
+                                                'bg-danger text-white': fl.estatus === 'VENDIDO',
+                                                'bg-warning text-dark': fl.estatus === 'APARTADO',
+                                                'bg-info text-white': fl.estatus === 'CONTRATADO'
+                                              }">{{ fl.estatus }}</span>
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" (click)="showFraccDetailModal = false">Cerrar</button>
+            </div>
+        </div>
+    </div>
+</div>

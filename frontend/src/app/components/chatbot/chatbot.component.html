@@ -1,0 +1,56 @@
+<div *ngIf="!isHidden">
+    <!-- Floating Toggle Button -->
+    <button *ngIf="!isOpen" (click)="toggle()" class="chatbot-toggle shadow-lg">
+        <i class="fas fa-comment-dots"></i>
+        <span class="notification-badge"></span>
+    </button>
+
+    <!-- Chat Window -->
+    <div *ngIf="isOpen" class="chatbot-window shadow-2xl">
+        <!-- Header -->
+        <div class="chatbot-header">
+            <div class="d-flex align-items-center">
+                <div class="bot-avatar mr-2">
+                    <i class="fas fa-robot"></i>
+                </div>
+                <div>
+                    <h6 class="mb-0 font-weight-bold">Asistente Reyval</h6>
+                    <small class="text-success"><i class="fas fa-circle mr-1" style="font-size: 7px;"></i>En
+                        línea</small>
+                </div>
+            </div>
+            <button (click)="toggle()" class="btn-close-chat">
+                <i class="fas fa-times"></i>
+            </button>
+        </div>
+
+        <!-- Messages Area -->
+        <div class="chatbot-messages" #scrollContainer>
+            <div *ngFor="let msg of messages" class="message-wrapper"
+                [ngClass]="{'user-msg-wrapper': msg.sender === 'user', 'bot-msg-wrapper': msg.sender === 'bot'}">
+
+                <div class="message-bubble shadow-sm" [ngClass]="msg.sender === 'user' ? 'user-bubble' : 'bot-bubble'">
+                    {{ msg.text }}
+                </div>
+
+                <!-- Options Chips -->
+                <div *ngIf="msg.options && msg === messages[messages.length - 1]" class="options-container mt-2">
+                    <button *ngFor="let opt of msg.options" (click)="selectOption(opt)" class="option-chip">
+                        {{ opt }}
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Input Area -->
+        <div class="chatbot-input">
+            <form (submit)="sendMessage(); $event.preventDefault()" class="d-flex position-relative">
+                <input [(ngModel)]="currentInput" name="msgInput" [disabled]="step === 'END'"
+                    placeholder="Escribe un mensaje..." class="form-control rounded-pill pr-5" autocomplete="off">
+                <button type="submit" [disabled]="!currentInput.trim() || step === 'END'" class="btn-send">
+                    <i class="fas fa-paper-plane"></i>
+                </button>
+            </form>
+        </div>
+    </div>
+</div>

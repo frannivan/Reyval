@@ -1,0 +1,283 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = "file:./dev.db"
+}
+
+// --- TABLAS DE NEGOCIO (Paridad con Java) ---
+
+model Fraccionamiento {
+  id                  Int                     @id @default(autoincrement())
+  nombre              String
+  ubicacion           String?
+  descripcion         String?
+  logoUrl             String?
+  coordenadasGeo      String?
+  imagenPlanoUrl      String?
+  planoSvg            String?
+  poligonoDelimitador String?
+  lotes               Lote[]
+  imagenes            FraccionamientoImagen[]
+
+  @@map("fraccionamientos")
+}
+
+model FraccionamientoImagen {
+  id                Int             @id @default(autoincrement())
+  fraccionamientoId Int             @map("fraccionamiento_id")
+  imagenUrl         String          @map("imagen_url")
+  fraccionamiento   Fraccionamiento @relation(fields: [fraccionamientoId], references: [id], onDelete: Cascade)
+
+  @@map("fraccionamiento_imagenes")
+}
+
+model Lote {
+  id                  Int              @id @default(autoincrement())
+  numeroLote          String           @map("numero_lote")
+  manzana             String
+  precioTotal         Decimal          @map("precio_total")
+  areaMetrosCuadrados Float            @map("area_metros_cuadrados")
+  coordenadasGeo      String?          @map("coordenadas_geo")
+  estatus             String? // DISPONIBLE, APARTADO, VENDIDO
+  descripcion         String?
+  imagenUrl           String?          @map("imagen_url")
+  notas               String?
+  planoCoordinates    String?          @map("plano_coordinates")
+  fraccionamientoId   Int?             @map("fraccionamiento_id")
+  fraccionamiento     Fraccionamiento? @relation(fields: [fraccionamientoId], references: [id])
+  imagenes            LoteImagen[]
+  contratoes          Contrato[]
+  oportunidades       Opportunity[]
+
+  @@map("lotes")
+}
+
+model LoteImagen {
+  id        Int    @id @default(autoincrement())
+  loteId    Int    @map("lote_id")
+  imagenUrl String @map("imagen_url")
+  lote      Lote   @relation(fields: [loteId], references: [id], onDelete: Cascade)
+
+  @@map("lote_imagenes")
+}
+
+// --- TABLAS DE SEGURIDAD (Better-Auth + Paridad Java) ---
+
+model User {
+  id            String     @id
+  username      String     @unique
+  email         String     @unique
+  emailVerified Boolean    @map("email_verified")
+  image         String?
+  roleId        Int?       @map("role_id")
+  role          Role?      @relation(fields: [roleId], references: [id])
+  createdAt     DateTime   @default(now()) @map("created_at")
+  updatedAt     DateTime   @updatedAt @map("updated_at")
+  sessions      Session[]
+  accounts      Account[]
+  contratoes    Contrato[]
+  tickets       Ticket[]
+  mensajes      Mensaje[]
+  interacciones Interaccion[]
+
+  @@map("user")
+}
+
+model Session {
+  id        String   @id
+  expiresAt DateTime @map("expires_at")
+  token     String   @unique
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+  ipAddress String?  @map("ip_address")
+  userAgent String?  @map("user_agent")
+  userId    String   @map("user_id")
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("session")
+}
+
+model Account {
+  id                    String    @id
+  accountId             String    @map("account_id")
+  providerId            String    @map("provider_id")
+  userId                String    @map("user_id")
+  user                  User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  accessToken           String?   @map("access_token")
+  refreshToken          String?   @map("refresh_token")
+  idToken               String?   @map("id_token")
+  accessTokenExpiresAt  DateTime? @map("access_token_expires_at")
+  refreshTokenExpiresAt DateTime? @map("refresh_token_expires_at")
+  scope                 String?
+  password              String?
+
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  @@map("account")
+}
+
+model Verification {
+  id         String    @id
+  identifier String
+  value      String
+  expiresAt  DateTime  @map("expires_at")
+  createdAt  DateTime? @default(now()) @map("created_at")
+  updatedAt  DateTime? @updatedAt @map("updated_at")
+
+  @@map("verification")
+}
+
+model Role {
+  id    Int    @id @default(autoincrement())
+  name  String @unique // ROLE_ADMIN, ROLE_USER, etc.
+  users User[]
+
+  @@map("roles")
+}
+
+// --- ENTIDADES DE NEGOCIO ADICIONALES ---
+
+model Cliente {
+  id              Int        @id @default(autoincrement())
+  nombre          String
+  apellidoPaterno String?    @map("apellido_paterno")
+  apellidoMaterno String?    @map("apellido_materno")
+  email           String?
+  telefono        String?
+  rfc             String?
+  domicilio       String?
+  fechaRegistro   DateTime?  @default(now()) @map("fecha_registro")
+  contratos       Contrato[]
+  interacciones   Interaccion[]
+
+  @@map("clientes")
+}
+
+model Contrato {
+  id               Int      @id @default(autoincrement())
+  clienteId        Int      @map("cliente_id")
+  loteId           Int      @map("lote_id")
+  vendedorId       String?  @map("vendedor_id")
+  fechaContrato    DateTime @map("fecha_contrato")
+  montoTotal       Decimal  @map("monto_total")
+  enganche         Decimal
+  plazoMeses       Int      @map("plazo_meses")
+  tasaInteresAnual Float    @map("tasa_interes_anual")
+  mensualidad      Decimal
+  estatus          String // ACTIVO, PAGADO, CANCELADO
+
+  cliente  Cliente @relation(fields: [clienteId], references: [id])
+  lote     Lote    @relation(fields: [loteId], references: [id])
+  vendedor User?   @relation(fields: [vendedorId], references: [id])
+  pagos    Pago[]
+
+  @@map("contratos")
+}
+
+model Pago {
+  id                Int      @id @default(autoincrement())
+  contratoId        Int      @map("contrato_id")
+  fechaPago         DateTime @map("fecha_pago")
+  monto             Decimal
+  numeroParcialidad Int      @map("numero_parcialidad")
+  referencia        String?
+  estatus           String? // PENDIENTE, COMPLETADO, CANCELADO
+  comprobanteUrl    String?  @map("comprobante_url")
+
+  contrato Contrato @relation(fields: [contratoId], references: [id])
+
+  @@map("pagos")
+}
+
+model Ticket {
+  id               Int       @id @default(autoincrement())
+  titulo           String
+  descripcion      String
+  estatus          String
+  prioridad        String
+  tipo             String?   @default("INCIDENCIA") // INCIDENCIA, CAMBIO
+  evidenciaUrl     String?   @map("evidencia_url")
+  rolesDestino     String?   @map("roles_destino")
+  pasosReplicacion String?   @map("pasos_replicacion")
+  registroAfectado String?   @map("registro_afectado")
+  userId           String    @map("user_id")
+  createdAt        DateTime  @default(now()) @map("created_at")
+  updatedAt        DateTime  @updatedAt @map("updated_at")
+  user             User      @relation(fields: [userId], references: [id])
+  mensajes         Mensaje[]
+
+  @@map("tickets")
+}
+
+model Mensaje {
+  id        Int      @id @default(autoincrement())
+  ticketId  Int      @map("ticket_id")
+  userId    String   @map("user_id")
+  contenido String
+  createdAt DateTime @default(now()) @map("created_at")
+  ticket    Ticket   @relation(fields: [ticketId], references: [id])
+  user      User     @relation(fields: [userId], references: [id])
+
+  @@map("mensajes")
+}
+
+model Lead {
+  id            Int           @id @default(autoincrement())
+  nombre        String
+  email         String?
+  telefono      String?
+  mensaje       String?
+  source        String? // WEB, CHATBOT
+  interes       String? // COTIZACION, REPRESENTANTE
+  status        String        @default("NEW") // NEW, CONTACTED, CONVERTED
+  fechaRegistro DateTime      @default(now()) @map("fecha_registro")
+  oportunidades Opportunity[]
+  interacciones Interaccion[]
+
+  @@map("leads")
+}
+
+model Opportunity {
+  id                    Int       @id @default(autoincrement())
+  leadId                Int       @map("lead_id")
+  loteId                Int?      @map("lote_id")
+  montoEstimado         Decimal?  @map("monto_estimado")
+  fechaCierreEstimada   DateTime? @map("fecha_cierre_estimada")
+  status                String    @default("OPEN") // OPEN, WON, LOST
+  notas                 String?
+  createdAt             DateTime  @default(now()) @map("created_at")
+  lead                  Lead      @relation(fields: [leadId], references: [id])
+  lote                  Lote?     @relation(fields: [loteId], references: [id])
+
+  @@map("opportunities")
+}
+
+model Interaccion {
+  id        Int      @id @default(autoincrement())
+  leadId    Int?     @map("lead_id")
+  clienteId Int?     @map("cliente_id")
+  vendedorId String? @map("vendedor_id")
+  fecha     DateTime @default(now())
+  tipo      String   // LLAMADA, VISITA, NOTA, CORREO
+  notas     String
+  
+  lead      Lead?    @relation(fields: [leadId], references: [id])
+  cliente   Cliente? @relation(fields: [clienteId], references: [id])
+  vendedor  User?    @relation(fields: [vendedorId], references: [id])
+
+  @@map("interacciones")
+}
+
+
+model Permission {
+  id            Int     @id @default(autoincrement())
+  roleName      String  @map("role_name")
+  permissionKey String  @map("permission_key")
+  enabled       Boolean @default(true)
+
+  @@map("permissions")
+}

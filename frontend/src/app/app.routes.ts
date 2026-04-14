@@ -1,0 +1,62 @@
+import { Routes } from '@angular/router';
+import { HomeComponent } from './home/home';
+import { LoginComponent } from './login/login';
+import { RegisterComponent } from './register/register';
+import { ProfileComponent } from './profile/profile';
+import { BoardAdminComponent } from './board-admin/board-admin.component';
+import { BoardClientsComponent } from './board-clients/board-clients.component';
+import { BoardUser } from './board-user/board-user';
+import { AdminUsersComponent } from './admin-users/admin-users.component';
+import { SecurityComponent } from './profile/security/security.component';
+
+import { LoteDetail } from './lote-detail/lote-detail';
+import { FraccionamientoDetailComponent } from './fraccionamiento-detail/fraccionamiento-detail';
+import { CrmLeadsComponent } from './admin/crm/leads/crm-leads.component';
+import { CrmOpportunitiesComponent } from './admin/crm/opportunities/crm-opportunities.component';
+import { BoardRecepcionComponent } from './board-recepcion/board-recepcion.component';
+import { DocumentacionComponent } from './admin/documentacion/documentacion.component';
+import { MensajesComponent } from './mensajes/mensajes';
+import { CotizacionComponent } from './cotizacion/cotizacion';
+import { GenerarContratoComponent } from './generar-contrato/generar-contrato';
+import { BoardVendedorComponent } from './board-vendedor/board-vendedor.component';
+import { FraccionamientoListComponent } from './components/fraccionamientos/fraccionamiento-list/fraccionamiento-list.component';
+import { LoteListComponent } from './components/lotes/lote-list/lote-list.component';
+import { ReportesComponent } from './admin/reportes/reportes.component';
+import { CargaDatosComponent } from './admin/carga-datos/carga-datos.component';
+import { PolygonEditorComponent } from './board-admin/polygon-editor/polygon-editor.component';
+import { SoporteComponent } from './admin/soporte/soporte.component';
+import { PermissionsAdminComponent } from './admin/permissions/permissions-admin.component';
+import { BoardContabilidadComponent } from './board-contabilidad/board-contabilidad.component';
+import { ValidacionPagosComponent } from './validacion-pagos/validacion-pagos.component';
+
+export const routes: Routes = [
+    { path: 'home', component: HomeComponent },
+    { path: 'lote/:id', component: LoteDetail },
+    { path: 'fraccionamiento/:id', component: FraccionamientoDetailComponent },
+    { path: 'login', component: LoginComponent },
+    { path: 'register', component: RegisterComponent },
+    { path: 'profile', component: ProfileComponent },
+    { path: 'profile/security', component: SecurityComponent },
+    { path: 'user', component: BoardUser },
+    { path: 'admin', component: BoardAdminComponent },
+    { path: 'admin/clientes', component: BoardClientsComponent },
+    { path: 'admin/fraccionamientos', component: FraccionamientoListComponent },
+    { path: 'admin/lotes', component: LoteListComponent },
+    { path: 'admin/users', component: AdminUsersComponent },
+    { path: 'admin/reportes', component: ReportesComponent },
+    { path: 'admin/carga-datos', component: CargaDatosComponent },
+    { path: 'admin/polygon-editor', component: PolygonEditorComponent },
+    { path: 'admin/crm/leads', component: CrmLeadsComponent },
+    { path: 'admin/crm/opportunities', component: CrmOpportunitiesComponent },
+    { path: 'recepcion', component: BoardRecepcionComponent },
+    { path: 'contabilidad', component: BoardContabilidadComponent },
+    { path: 'validacion-pagos', component: ValidacionPagosComponent },
+    { path: 'admin/documentacion', component: DocumentacionComponent },
+    { path: 'mensajes', component: MensajesComponent },
+    { path: 'cotizar', component: CotizacionComponent },
+    { path: 'admin/generar-contrato', component: GenerarContratoComponent },
+    { path: 'admin/soporte', component: SoporteComponent },
+    { path: 'admin/permissions', component: PermissionsAdminComponent },
+    { path: 'panel-vendedor', component: BoardVendedorComponent },
+    { path: '', redirectTo: 'home', pathMatch: 'full' }
+];

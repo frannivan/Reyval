@@ -1,0 +1,318 @@
+<div class="container-fluid mt-4">
+    <div *ngIf="isLoading" class="text-center my-5">
+        <div class="spinner-border text-primary" role="status">
+            <span class="sr-only">Cargando...</span>
+        </div>
+        <p>Cargando detalles...</p>
+    </div>
+
+    <div *ngIf="errorMsg" class="alert alert-danger">
+        {{ errorMsg }}
+        <br>
+        <button class="btn btn-outline-danger mt-2" routerLink="/home">Volver al Inicio</button>
+    </div>
+
+    <div *ngIf="fraccionamiento && !isLoading">
+        <!-- Unified Header / Card -->
+        <div class="card shadow-lg mb-4">
+            <div class="card-header bg-dark text-white d-flex justify-content-between align-items-center">
+                <div class="d-flex align-items-center">
+                    <button class="btn btn-outline-light btn-sm mr-3" routerLink="/home">
+                        <i class="fas fa-arrow-left"></i> Regresar
+                    </button>
+                    <h5 class="mb-0 text-white">{{ fraccionamiento?.nombre }}</h5>
+                </div>
+                <div *ngIf="isAdmin" class="badge badge-warning p-2">
+                    <i class="fas fa-shield-alt"></i> Modo Admin
+                </div>
+            </div>
+            
+            <!-- Admin Toolbar -->
+            <div class="p-3 bg-light border-bottom" *ngIf="isAdmin">
+                <div class="btn-group">
+                    <button class="btn btn-warning btn-sm" (click)="$event.stopPropagation(); toggleEditMode()" [class.active]="isEditing">
+                        <i class="fas fa-edit"></i> {{ isEditing ? 'Cerrar Gestión' : 'Gestionar Imágenes' }}
+                    </button>
+                    <button class="btn btn-primary btn-sm" (click)="$event.stopPropagation(); togglePolygonEditor()" [class.active]="showPolygonEditor">
+                        <i class="fas fa-draw-polygon"></i> {{ showPolygonEditor ? 'Cerrar Editor' : 'Editor de Polígonos' }}
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Polygon Editor Component (Full Width) -->
+        <div *ngIf="showPolygonEditor" class="card shadow-lg mt-3 p-3">
+            <app-polygon-editor [fraccionamientoId]="fraccionamiento?.id"></app-polygon-editor>
+        </div>
+
+        <div class="row no-gutters" *ngIf="!showPolygonEditor">
+            <!-- Left Side: Interactive Plan / Map -->
+            <div [class]="isEditing ? 'col-md-8' : 'col-md-12 bg-light rounded-left p-0'">
+                <div class="p-3 position-relative" style="min-height: 600px; overflow: hidden;">
+
+                    <button *ngIf="!isAdmin" class="btn btn-light btn-sm position-absolute"
+                        style="top: 10px; left: 10px; z-index: 100;" routerLink="/home">
+                        <i class="fas fa-arrow-left"></i> Regresar
+                    </button>
+
+                    <!-- PLAN VIEW (Leaflet Interactive Map) -->
+                    <div *ngIf="fraccionamiento?.imagenPlanoUrl; else fallbackMap" class="position-relative w-100 h-100">
+                        <div id="map-plan" style="height: 600px; width: 100%; z-index: 1;"></div>
+                        
+                        <!-- Map Controls Hint -->
+                        <div class="position-absolute bg-white p-2 rounded shadow-sm text-center small text-muted" 
+                             style="bottom: 10px; left: 10px; z-index: 400; opacity: 0.8;">
+                            <i class="fas fa-mouse-pointer"></i> Navega el mapa para ver detalles
+                        </div>
+                    </div>
+
+                    <!-- Fallback to Leaflet Map if no Plan Image -->
+                    <ng-template #fallbackMap>
+                        <app-map *ngIf="fraccionamiento" [lotes]="lotes" [fraccionamientos]="[fraccionamiento]"></app-map>
+                        <div *ngIf="isEditing" class="alert alert-warning position-absolute"
+                            style="top: 10px; left: 10px; z-index: 1000;">
+                            <strong>No hay imagen de plano.</strong> Sube una para comenzar a editar.
+                        </div>
+                    </ng-template>
+
+                </div>
+
+                <!-- Admin Gallery Management (Only for Admins) -->
+                <div *ngIf="isAdmin" class="p-3 bg-white border-top border-bottom">
+                    <h5 class="mb-3">
+                        <i class="fas fa-images text-warning"></i> Gestión de Galería (Admin)
+                    </h5>
+
+                    <div class="form-group mb-0">
+                        <label class="font-weight-bold">Subir Imágenes a la Galería</label>
+                        <div class="custom-file">
+                            <input type="file" class="custom-file-input" (change)="uploadGalleryImage($event)"
+                                accept="image/*,application/pdf" id="adminGalleryUpload" multiple>
+                            <label class="custom-file-label" for="adminGalleryUpload">
+                                Elegir imágenes...
+                            </label>
+                        </div>
+                    </div>
+
+                    <!-- Admin Gallery Thumbnails with Delete -->
+                    <div *ngIf="fraccionamiento?.galeriaImagenes && fraccionamiento?.galeriaImagenes?.length > 0" class="mt-3">
+                        <div class="d-flex flex-wrap">
+                            <div *ngFor="let img of fraccionamiento?.galeriaImagenes; let i = index"
+                                class="position-relative m-1" style="width: 80px; height: 80px;">
+                                <img [src]="getImageUrl(img)" class="w-100 h-100 rounded border" style="object-fit: cover;">
+
+                                <button
+                                    class="btn btn-sm position-absolute shadow-sm d-flex align-items-center justify-content-center"
+                                    [class.btn-warning]="fraccionamiento?.logoUrl === img"
+                                    [class.btn-light]="fraccionamiento?.logoUrl !== img"
+                                    style="bottom: 2px; right: 28px; border-radius: 50%; width: 24px; height: 24px; padding: 0; z-index: 10;"
+                                    (click)="setCoverImage(img)">
+                                    <i class="fas fa-star" style="font-size: 10px;" [class.text-white]="fraccionamiento?.logoUrl === img"></i>
+                                </button>
+
+                                <button class="btn btn-danger btn-sm position-absolute shadow-sm"
+                                    style="bottom: 2px; right: 2px; width: 24px; height: 24px; border-radius: 50%; padding: 0;"
+                                    (click)="deleteGalleryImage(i)">
+                                    <i class="fas fa-trash" style="font-size: 10px;"></i>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- SVG Floor Plan (Public View) -->
+                <div *ngIf="fraccionamiento?.planoSvg" class="mb-4 border rounded">
+                    <h5 class="p-3 mb-0 bg-light border-bottom">
+                        <i class="fas fa-sitemap text-info"></i> Plano del Desarrollo
+                        <span class="ml-3">
+                            <span class="badge-status badge-lote-disponible">
+                                <i class="fas fa-circle" style="font-size: 8px;"></i> Disponible
+                            </span>
+                            <span class="badge-status badge-lote-apartado ml-1">
+                                <i class="fas fa-circle" style="font-size: 8px;"></i> Apartado
+                            </span>
+                            <span class="badge-status badge-lote-vendido ml-1">
+                                <i class="fas fa-circle" style="font-size: 8px;"></i> Vendido
+                            </span>
+                        </span>
+                    </h5>
+
+                    <div #svgContainer class="p-3 bg-white" style="overflow: auto; max-height: 700px;"
+                        [innerHTML]="sanitizedPlanoSvg">
+                    </div>
+
+                    <div class="p-2 bg-light border-top text-center text-muted small">
+                        <i class="fas fa-mouse-pointer"></i> Haz clic en un lote disponible para ver sus detalles
+                    </div>
+                </div>
+
+
+
+                <!-- Gallery Below Map (Always Visible) - MOVED UP AS REQUESTED -->
+                <div *ngIf="fraccionamiento?.galeriaImagenes && fraccionamiento?.galeriaImagenes?.length > 0"
+                    class="p-4 bg-white border-top shadow-sm">
+                    <h5 class="mb-4 font-weight-bold text-dark"><i class="fas fa-images text-primary mr-2"></i>Galería del Desarrollo</h5>
+                    <div class="row">
+                        <div class="col-lg-3 col-md-4 col-sm-6 mb-4" *ngFor="let img of fraccionamiento?.galeriaImagenes; let i = index">
+                            <div class="gallery-item-lux rounded overflow-hidden shadow-sm" (click)="openLightbox(i)" style="cursor: pointer; height: 200px;">
+                                <img [src]="getImageUrl(img)" class="w-100 h-100" style="object-fit: cover; transition: transform 0.3s ease;">
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+
+
+            <!-- Right Side: Edit Tools (Only in Edit Mode) -->
+            <div class="col-md-4 bg-white border-left" *ngIf="isEditing">
+                <div class="p-4" style="height: 600px; overflow-y: auto;">
+                    <h5 class="border-bottom pb-2">Herramientas de Edición</h5>
+
+                    <!-- Metadata Editing -->
+                    <div class="form-group mb-3 pb-3 border-bottom">
+                        <label class="font-weight-bold">Nombre del Desarrollo</label>
+                        <input type="text" class="form-control" [(ngModel)]="fraccionamiento.nombre" 
+                               placeholder="Ej: Residencial Las Palmas">
+                    </div>
+
+                    <div class="form-group mb-3 pb-3 border-bottom">
+                        <label class="font-weight-bold">Ubicación / Ciudad</label>
+                        <input type="text" class="form-control" [(ngModel)]="fraccionamiento.ubicacion" 
+                               placeholder="Ej: Autlán, Jalisco">
+                    </div>
+
+                    <div class="form-group mb-4 pb-3 border-bottom">
+                        <label class="font-weight-bold">Descripción General</label>
+                        <textarea class="form-control" [(ngModel)]="fraccionamiento.descripcion" rows="4"
+                                  placeholder="Detalles sobre el fraccionamiento..."></textarea>
+                    </div>
+
+                    <!-- Logo Upload -->
+                    <div class="form-group mb-4">
+                        <label class="font-weight-bold">0. Imagen de Portada / Logo</label>
+                        <div class="custom-file">
+                            <input type="file" class="custom-file-input" (change)="uploadLogo($event)" accept="image/*"
+                                id="logoUpload">
+                            <label class="custom-file-label" for="logoUpload">Elegir Portada...</label>
+                        </div>
+                    </div>
+
+                    <!-- Image Upload -->
+                    <div class="form-group mb-4">
+                        <label class="font-weight-bold">1. Imagen del Plano (Master Plan)</label>
+                        <div class="custom-file">
+                            <input type="file" class="custom-file-input" (change)="uploadPlanImage($event)" accept="image/*"
+                                id="planUpload">
+                            <label class="custom-file-label" for="planUpload">Elegir Plano...</label>
+                        </div>
+                        <small class="text-muted" *ngIf="isUploading">Subiendo imagen...</small>
+                        <div *ngIf="fraccionamiento?.imagenPlanoUrl" class="mt-2">
+                            <button class="btn btn-sm btn-danger btn-block" (click)="deletePlanImage()">
+                                <i class="fas fa-trash"></i> Eliminar Plano
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Final Save Button -->
+                    <div class="mt-4 mb-5">
+                        <button class="btn btn-success btn-lg btn-block shadow-sm font-weight-bold" 
+                                (click)="saveChangesManual()" [disabled]="isUploading">
+                            <i class="fas fa-save mr-2"></i> {{ isUploading ? 'Guardando...' : 'GUARDAR TODO' }}
+                        </button>
+                        <small class="text-muted d-block text-center mt-2">
+                            Asegúrate de guardar antes de salir del modo edición.
+                        </small>
+                    </div>
+
+                    <!-- Lote Selector -->
+                    <div class="alert alert-info small mt-3">
+                        <i class="fas fa-info-circle"></i>
+                        Para editar los polígonos de los lotes, utiliza el <strong>Editor de Polígonos</strong> desde la
+                        barra
+                        superior.
+                        Aquí solo puedes gestionar imágenes del desarrollo.
+                    </div>
+                </div>
+            </div>
+
+            <!-- Details Panel (Visible when NOT editing) -->
+            <div class="col-md-12 p-4" *ngIf="!isEditing">
+                <div class="d-flex align-items-center mb-3">
+                    <img [src]="getImageUrl(fraccionamiento?.logoUrl) || 'assets/no-img.png'" class="mr-3" style="max-height: 60px;">
+                    <div>
+                        <h2 class="h4 mb-0">{{ fraccionamiento?.nombre }}</h2>
+                        <p class="text-muted mb-0 small">{{ fraccionamiento?.ubicacion }}</p>
+                    </div>
+                </div>
+                <p>{{ fraccionamiento?.descripcion }}</p>
+
+                <h5 class="mt-4">Lista de Lotes</h5>
+                <div class="table-responsive">
+                    <table class="table table-sm table-hover">
+                        <thead>
+                            <tr>
+                                <th>Lote</th>
+                                <th>Manzana</th>
+                                <th>Área</th>
+                                <th>Precio</th>
+                                <th>Estatus</th>
+                                <th>Acción</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr *ngFor="let lote of lotes">
+                                <td>{{ lote.numeroLote }}</td>
+                                <td>{{ lote.manzana }}</td>
+                                <td>{{ lote.areaMetrosCuadrados }} m²</td>
+                                <td>{{ lote.precioTotal | currency:'MXN' }}</td>
+                                <td>
+                                    <span class="badge-status" [ngClass]="{
+                                            'badge-lote-disponible': lote.estatus === 'DISPONIBLE',
+                                            'badge-lote-vendido': lote.estatus === 'VENDIDO',
+                                            'badge-lote-apartado': lote.estatus === 'APARTADO'
+                                        }">{{ lote.estatus }}</span>
+                                </td>
+                                <td>
+                                    <button class="btn btn-sm btn-outline-primary"
+                                        [routerLink]="['/lote', lote.id]">Ver</button>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <!-- Lightbox / Carousel -->
+        <div *ngIf="showLightbox" class="position-fixed w-100 h-100 d-flex justify-content-center align-items-center"
+            style="top: 0; left: 0; z-index: 2000; background-color: rgba(0,0,0,0.9);">
+            
+            <button class="btn btn-link text-white position-absolute" style="top: 20px; right: 20px; font-size: 30px;"
+                (click)="closeLightbox()">&times;</button>
+                
+            <button class="btn btn-link text-white position-absolute" style="left: 20px; font-size: 30px;"
+                (click)="prevImage()"><i class="fas fa-chevron-left"></i></button>
+
+            <img [src]="getImageUrl(fraccionamiento?.galeriaImagenes[currentImageIndex])" class="img-fluid" style="height: auto; width: auto; max-height: 100vh; max-width: 100vw; object-fit: contain;">
+
+            <button class="btn btn-link text-white position-absolute" style="right: 20px; font-size: 30px;"
+                (click)="nextImage()"><i class="fas fa-chevron-right"></i></button>
+                
+            <div class="position-absolute text-white" style="bottom: 20px;">
+                {{ currentImageIndex + 1 }} / {{ fraccionamiento?.galeriaImagenes?.length }}
+            </div>
+        </div>
+    </div>
+
+    <!-- Custom Floating Tooltip for SVG -->
+    <div id="loteTooltip" class="lote-tooltip-custom" style="display: none; opacity: 0;">
+        <strong id="tooltipLote">Lote 0</strong>
+        <div id="tooltipPrice" class="fw-bold text-warning"></div>
+        <div id="tooltipArea">0 m²</div>
+        <div id="tooltipStatus">
+            <span class="status-dot" id="tooltipStatusDot"></span>
+            <span id="tooltipStatusText">DISPONIBLE</span>
+        </div>
+    </div>
+</div>

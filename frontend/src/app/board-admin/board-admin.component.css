@@ -1,0 +1,103 @@
+/* Base Styles Refinement */
+.container {
+    max-width: 1300px;
+    padding-top: 2rem;
+    padding-bottom: 4rem;
+}
+
+/* Premium Navigation */
+.nav-pills .nav-link {
+    color: #6c757d;
+    font-weight: 600;
+    transition: all 0.3s ease;
+    border-radius: 12px;
+    margin: 0 4px;
+    padding: 0.8rem 1.5rem;
+}
+
+.nav-pills .nav-link.active {
+    background: linear-gradient(135deg, #0d6efd 0%, #0b5ed7 100%);
+    box-shadow: 0 4px 15px rgba(13, 110, 253, 0.3);
+}
+
+.nav-pills .nav-link:hover:not(.active) {
+    background-color: #f8f9fa;
+    color: #0d6efd;
+}
+
+/* Modern Cards */
+.card {
+    border-radius: 16px;
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.shadow-sm {
+    box-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.075) !important;
+}
+
+/* Animations */
+.animate-fade-in {
+    animation: fadeIn 0.4s ease-out;
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateY(10px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+/* Form Styles */
+.custom-select, .form-control {
+    border-radius: 10px;
+    padding-left: 1rem;
+    height: calc(1.5em + 1rem + 2px);
+}
+
+.input-group-text {
+    border-radius: 10px 0 0 10px;
+}
+
+.input-group .form-control {
+    border-radius: 0 10px 10px 0;
+}
+
+/* Table Refinements */
+.table thead th {
+    border-top: none;
+    font-weight: 600;
+    letter-spacing: 0.5px;
+}
+
+.table td {
+    vertical-align: middle;
+}
+
+/* Buttons */
+.btn {
+    border-radius: 10px;
+    font-weight: 500;
+    transition: all 0.2s;
+}
+
+.btn-pill {
+    border-radius: 50px;
+}
+
+.btn-lg {
+    padding: 0.8rem 1.5rem;
+}
+
+/* Modal Premium Touch */
+.modal-content {
+    border: none;
+}
+
+.modal-header {
+    border-bottom: none;
+}
+
+.custom-control-label::before, 
+.custom-control-label::after {
+    top: 0.2rem;
+    width: 1.2rem;
+    height: 1.2rem;
+}

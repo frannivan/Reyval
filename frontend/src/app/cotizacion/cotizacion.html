@@ -1,0 +1,84 @@
+<div class="container mt-4">
+    <div class="row justify-content-center">
+        <div class="col-md-8 col-lg-6">
+            <div class="card shadow-sm border-0">
+                <div class="card-header bg-white border-bottom py-3">
+                    <h5 class="mb-0 fw-bold text-dark"><i class="fas fa-calculator me-2 text-primary"></i>Simulador de Financiamiento</h5>
+                </div>
+                <div class="card-body p-4">
+                    <form (ngSubmit)="calcular()">
+                        <div class="mb-3">
+                            <label class="form-label small text-muted text-uppercase fw-bold">Precio del Lote / Terreno</label>
+                            <div class="input-group">
+                                <span class="input-group-text">$</span>
+                                <input type="number" class="form-control" [(ngModel)]="cotizacion.montoTotal" name="montoTotal" placeholder="0.00" required>
+                            </div>
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label small text-muted text-uppercase fw-bold">Enganche Inicial</label>
+                            <div class="input-group">
+                                <span class="input-group-text">$</span>
+                                <input type="number" class="form-control" [(ngModel)]="cotizacion.enganche" name="enganche" placeholder="0.00" required>
+                            </div>
+                            <div class="form-text text-end" *ngIf="cotizacion.montoTotal && cotizacion.enganche">
+                                {{ ((cotizacion.enganche || 0) / (cotizacion.montoTotal || 1)) * 100 | number:'1.2-2' }}% del total
+                            </div>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label small text-muted text-uppercase fw-bold">Plazo (Meses)</label>
+                                <select class="form-select" [(ngModel)]="cotizacion.plazoMeses" name="plazoMeses" required>
+                                    <option [ngValue]="12">12 Meses</option>
+                                    <option [ngValue]="24">24 Meses</option>
+                                    <option [ngValue]="36">36 Meses</option>
+                                    <option [ngValue]="48">48 Meses</option>
+                                    <option [ngValue]="60">60 Meses</option>
+                                    <option [ngValue]="72">72 Meses</option>
+                                    <option [ngValue]="84">84 Meses</option>
+                                    <option [ngValue]="96">96 Meses (8 años)</option>
+                                </select>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label small text-muted text-uppercase fw-bold">Tasa de Interés Anual (%)</label>
+                                <div class="input-group">
+                                    <input type="number" class="form-control" [(ngModel)]="cotizacion.tasaAnual" name="tasaAnual" placeholder="12.0" step="0.1" required>
+                                    <span class="input-group-text">%</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="d-grid gap-2 mt-4">
+                            <button type="submit" class="btn btn-primary fw-bold py-2">
+                                <i class="fas fa-play me-2"></i> Calcular Mensualidad
+                            </button>
+                        </div>
+                    </form>
+
+                    <hr class="my-4">
+
+                    <div *ngIf="resultado" class="text-center bg-light p-4 rounded-3 border">
+                        <h6 class="text-muted text-uppercase small fw-bold mb-3">Resultado de la Simulación</h6>
+                        
+                        <div class="row align-items-center mb-2">
+                            <div class="col text-start text-muted">Monto a Financiar:</div>
+                            <div class="col text-end fw-bold">{{ resultado.montoFinanciar | currency:'MXN' }}</div>
+                        </div>
+                        <div class="row align-items-center mb-3">
+                            <div class="col text-start text-muted">Mensualidad Estimada:</div>
+                            <div class="col text-end fw-bold text-primary fs-4">{{ resultado.mensualidad | currency:'MXN' }}</div>
+                        </div>
+                        
+                        <div class="alert alert-info small mb-0 d-flex align-items-center">
+                            <i class="fas fa-info-circle me-3 fs-5"></i>
+                            <div>
+                                Este cálculo es informativo. El monto final puede variar según la fecha de contrato y políticas vigentes.
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

@@ -1,0 +1,102 @@
+<div class="container-fluid mt-4">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h2 class="text-primary font-weight-bold"><i class="fas fa-handshake mr-2"></i>Seguimiento de Oportunidades</h2>
+        <button class="btn btn-outline-success shadow-sm" (click)="exportExcel()">
+            <i class="fas fa-file-excel mr-2"></i>Exportar Excel
+        </button>
+    </div>
+
+    <div *ngIf="errorMsg" class="alert alert-danger">{{ errorMsg }}</div>
+    <div *ngIf="successMsg" class="alert alert-success">{{ successMsg }}</div>
+
+    <!-- Filter Bar -->
+    <div class="card mb-3 shadow-sm border-0">
+        <div class="card-body">
+            <div class="input-group">
+                <div class="input-group-prepend">
+                    <span class="input-group-text bg-white border-right-0"><i class="fas fa-search text-muted"></i></span>
+                </div>
+                <input type="text" class="form-control border-left-0" placeholder="Buscar por prospecto o lote (ej. Lote 5)..." [(ngModel)]="searchTerm">
+            </div>
+        </div>
+    </div>
+
+    <div class="card shadow-sm border-0">
+        <div class="card-body p-0">
+            <div class="table-responsive">
+                <table class="table table-hover mb-0">
+                    <thead class="bg-light text-dark">
+                        <tr>
+                            <th>Prospecto</th>
+                            <th>Lote</th>
+                            <th>Monto</th>
+                            <th>Interés</th>
+                            <th>Estado</th>
+                            <th>Cierre Est.</th>
+                            <th>Acciones</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr *ngFor="let opp of filteredOpportunities">
+                            <td>
+                                <div class="font-weight-bold">{{ opp.lead?.nombre }}</div>
+                                <small class="text-muted">ID: #{{ opp.lead?.id }}</small>
+                            </td>
+                            <!-- Lote -->
+                            <td>
+                                <span class="badge-fracc shadow-sm">Lote {{ opp.lote?.numeroLote }}</span>
+                            </td>
+                            <!-- Monto -->
+                            <td>
+                                <strong class="text-success">{{ opp.montoEstimado | currency:'MXN' }}</strong>
+                            </td>
+                            <!-- Interés -->
+                            <td>
+                                <span class="badge-status" [ngClass]="opp.lead?.interes === 'REPRESENTANTE' ? 'badge-status-active' : 'badge-status-info'">
+                                    {{ opp.lead?.interes || 'COTIZACION' }}
+                                </span>
+                            </td>
+                            <td>
+                                <select class="form-control form-control-sm border-0 bg-transparent text-dark font-weight-bold"
+                                    [(ngModel)]="opp.status" (change)="updateStatus(opp, opp.status)">
+                                    <option value="PROSPECTING">PROSPECCIÓN</option>
+                                    <option value="NEGOTIATION">NEGOCIACIÓN</option>
+                                    <option value="PROPOSAL_SENT">PROPUESTA</option>
+                                    <option value="WON">GANADA</option>
+                                    <option value="LOST">PERDIDA</option>
+                                </select>
+                            </td>
+                            <td>
+                                {{ (opp.fechaCierreEstimada | date:'dd/MM/yyyy') || 'Sin fecha' }}
+                            </td>
+                            <td>
+                                <div class="btn-group">
+                                    <button class="btn btn-sm btn-primary rounded-pill px-3 mr-1" *ngIf="opp.status === 'WON'"
+                                        (click)="convertToClient(opp)">
+                                        <i class="fas fa-user-plus mr-1"></i> Crear Cliente
+                                    </button>
+                                    <button class="btn btn-sm btn-outline-info rounded-pill" (click)="openCommModal(opp)">
+                                        <i class="fab fa-whatsapp"></i> / <i class="fas fa-envelope"></i>
+                                    </button>
+                                </div>
+                                <span *ngIf="opp.status !== 'WON'" class="text-muted d-block mt-1 small">En proceso</span>
+                            </td>
+                        </tr>
+                        <tr *ngIf="opportunities.length === 0">
+                            <td colspan="7" class="text-center py-4 text-muted">No hay oportunidades activas.</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <!-- Communication Modal (WA/Email) -->
+    <app-communication-modal 
+        *ngIf="showCommModal" 
+        [show]="showCommModal" 
+        [targetId]="selectedOpportunity?.lead?.id" 
+        [targetName]="selectedOpportunity?.lead?.nombre"
+        (onClose)="showCommModal = false">
+    </app-communication-modal>
+</div>

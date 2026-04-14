@@ -1,0 +1,338 @@
+<div class="container mt-5">
+
+    <div *ngIf="isLoading" class="text-center">
+        <div class="spinner-border text-primary" role="status">
+            <span class="sr-only">Cargando...</span>
+        </div>
+    </div>
+
+    <div *ngIf="!isLoading && lote" class="card shadow-lg">
+        <!-- Gallery Hero Section (Top) -->
+        <div class="gallery-hero bg-light border-bottom p-0 position-relative" style="min-height: 300px;">
+            <!-- Main Display Image -->
+            <div class="main-image-container text-center bg-dark">
+                <img [src]="getImageUrl(lote.galeriaImagenes?.[selectedImageIndex] || lote.imagenUrl)" 
+                     class="img-fluid main-hero-image"
+                     (click)="openGallery(selectedImageIndex)" alt="Imagen del Lote">
+                
+                <!-- Hero Controls (Overlay) -->
+                <button class="carousel-control-prev hero-control" type="button" (click)="prevImage()" *ngIf="lote.galeriaImagenes?.length > 1">
+                    <span class="carousel-control-prev-icon shadow-sm" aria-hidden="true" style="background-color: rgba(0,0,0,0.3); border-radius: 50%;"></span>
+                </button>
+                <button class="carousel-control-next hero-control" type="button" (click)="nextImage()" *ngIf="lote.galeriaImagenes?.length > 1">
+                    <span class="carousel-control-next-icon shadow-sm" aria-hidden="true" style="background-color: rgba(0,0,0,0.3); border-radius: 50%;"></span>
+                </button>
+
+                <!-- Admin Tools Floating -->
+                <div *ngIf="isAdmin" class="position-absolute" style="top: 15px; right: 15px; z-index: 20;">
+                    <button class="btn btn-dark btn-sm shadow-lg opacity-75" (click)="toggleEditMode()" *ngIf="!isEditing">
+                        <i class="fas fa-camera mr-1"></i> Gestionar Galería
+                    </button>
+                </div>
+            </div>
+
+            <!-- Enhanced Thumbnails Bar -->
+            <div class="thumbnails-bar p-2 bg-white d-flex justify-content-center overflow-auto" *ngIf="lote.galeriaImagenes?.length > 0">
+                <div class="gallery-column mx-1" *ngFor="let img of lote.galeriaImagenes; let i = index" 
+                     [class.active-thumb]="i === selectedImageIndex"
+                     style="width: 80px; flex: 0 0 80px;">
+                    <img [src]="getImageUrl(img)" class="img-thumbnail thumb-btn shadow-sm"
+                        (click)="selectedImageIndex = i" alt="Thumbnail {{i}}"
+                        style="height: 60px; object-fit: cover; cursor: pointer;">
+                </div>
+            </div>
+
+            <!-- Admin Gallery Upload Panel (Visible during editing) -->
+            <div *ngIf="isAdmin && isEditing" class="p-3 bg-white border-top animate__animated animate__fadeIn">
+                <h6 class="font-weight-bold mb-3"><i class="fas fa-tools"></i> Gestión de Galería (Admin)</h6>
+                <div class="form-group mb-3">
+                    <div class="custom-file">
+                        <input type="file" class="custom-file-input" (change)="uploadGalleryImage($event)" id="loteGalleryUpload" accept="image/*" multiple>
+                        <label class="custom-file-label" for="loteGalleryUpload">Agregar fotos a la galería...</label>
+                    </div>
+                </div>
+                <div class="d-flex flex-wrap">
+                    <div *ngFor="let img of lote.galeriaImagenes; let i = index" class="position-relative m-1" style="width: 70px; height: 70px;">
+                        <img [src]="getImageUrl(img)" class="w-100 h-100 rounded border" style="object-fit: cover;">
+                        <button class="btn btn-warning btn-sm p-0 position-absolute" style="bottom: -5px; right: -5px; width: 22px; height: 22px; border-radius: 50%;" (click)="setCoverImage(img)" title="Portada">
+                            <i class="fas fa-star text-white" style="font-size: 10px;"></i>
+                        </button>
+                        <button class="btn btn-danger btn-sm p-0 position-absolute" style="top: -5px; right: -5px; width: 20px; height: 20px; border-radius: 50%;" (click)="deleteGalleryImage(i)">&times;</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="row no-gutters">
+            <!-- Empty Left Side now that gallery is top? No, keep the layout but maybe adjust grid -->
+            <!-- We'll keep the row for organization but put all text in a better arrangement -->
+
+            <!-- Text/Details Section (Full Row below Hero) -->
+            <div class="col-12 border-top">
+                <div class="card-body p-4 text-center">
+                    <!-- Status Badge -->
+                    <!-- Status Badge & Admin Tools -->
+                    <div class="mb-2 d-flex justify-content-between align-items-center">
+                        <span class="badge badge-pill px-3 py-2 shadow-sm text-white"
+                            [ngClass]="{
+                                'bg-success': lote.estatus === 'DISPONIBLE', 
+                                'bg-danger': lote.estatus === 'VENDIDO', 
+                                'bg-warning text-dark': lote.estatus === 'APARTADO',
+                                'bg-info': lote.estatus === 'CONTRATADO'
+                            }"
+                            style="font-size: 0.85rem; letter-spacing: 1px; min-width: 100px;">
+                            {{ lote.estatus }}
+                        </span>
+
+                        <div *ngIf="isAdmin" class="ml-auto">
+                            <button class="btn btn-outline-dark btn-sm mr-2" (click)="toggleEditMode()"
+                                *ngIf="isEditing">
+                                <i class="fas fa-times"></i> Cancelar
+                            </button>
+                            <button class="btn btn-success btn-sm shadow-sm" (click)="toggleEditMode(); saveChanges()"
+                                *ngIf="isEditing">
+                                <i class="fas fa-save mr-1"></i> Guardar Cambios
+                            </button>
+                            <button class="btn btn-warning btn-sm text-dark font-weight-bold shadow-sm"
+                                (click)="toggleEditMode()" *ngIf="!isEditing">
+                                <i class="fas fa-pen mr-1"></i> Editar Lote
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Title & Edit Fields -->
+                    <div *ngIf="!isEditing">
+                        <h1 class="h2 font-weight-bold text-dark mb-1">Lote {{ lote.numeroLote }}</h1>
+                        <p class="text-muted text-uppercase font-weight-bold mb-3"
+                            style="letter-spacing: 1.5px; font-size: 0.9rem;">
+                            {{ lote.manzana }}
+                        </p>
+                    </div>
+                    <div *ngIf="isEditing" class="mb-3">
+                        <div class="form-group">
+                            <label class="small font-weight-bold">Número de Lote</label>
+                            <input type="text" class="form-control form-control-lg text-center font-weight-bold"
+                                [(ngModel)]="lote.numeroLote">
+                        </div>
+                        <div class="form-group">
+                            <label class="small font-weight-bold">Manzana / Sección</label>
+                            <input type="text" class="form-control text-center" [(ngModel)]="lote.manzana">
+                        </div>
+                    </div>
+
+                    <!-- Location -->
+                    <div class="d-inline-block bg-light rounded-pill px-3 py-2 mb-3 align-self-center mx-auto"
+                        *ngIf="lote.fraccionamiento && !isEditing">
+                        <i class="fas fa-map-marker-alt text-danger mr-1 small"></i>
+                        <span class="text-dark font-weight-bold small">
+                            {{ lote.fraccionamiento.nombre }}
+                        </span>
+                        <span class="mx-1 text-muted small">|</span>
+                        <span class="text-muted small">{{ lote.fraccionamiento.ubicacion }}</span>
+                    </div>
+
+                    <hr class="my-3 w-75 mx-auto" style="border-top: 1px solid rgba(0,0,0,0.1);">
+
+                    <!-- Description -->
+                    <div class="mb-4 description-box overflow-auto" style="max-height: 150px;">
+                        <p class="text-secondary small" style="line-height: 1.6;" *ngIf="!isEditing">
+                            {{ lote.descripcion || 'Sin descripción disponible para este lote.' }}
+                        </p>
+                        <div *ngIf="isEditing" class="form-group text-left">
+                            <label class="small font-weight-bold">Descripción / Comentarios</label>
+                            <textarea class="form-control" rows="4" [(ngModel)]="lote.descripcion"></textarea>
+                        </div>
+                    </div>
+
+                    <!-- Featured Info Box (Price & Area) -->
+                    <div class="row mb-3 justify-content-center">
+                        <div class="col-6 mb-2 mb-md-0 px-2">
+                            <div class="p-2 rounded border h-100 shadow-sm bg-white">
+                                <small class="text-muted text-uppercase font-weight-bold d-block"
+                                    style="font-size: 0.7rem;">Precio</small>
+                                <h4 class="text-success font-weight-bold mb-0" style="font-size: 1.2rem;"
+                                    *ngIf="!isEditing">{{ lote.precioTotal | currency:'MXN' }}</h4>
+                                <input type="number" class="form-control form-control-sm mt-1"
+                                    [(ngModel)]="lote.precioTotal" *ngIf="isEditing">
+                            </div>
+                        </div>
+                        <div class="col-6 px-2">
+                            <div class="p-2 rounded border h-100 shadow-sm bg-white">
+                                <small class="text-muted text-uppercase font-weight-bold d-block"
+                                    style="font-size: 0.7rem;">Superficie</small>
+                                <h4 class="text-dark font-weight-bold mb-0" style="font-size: 1.2rem;"
+                                    *ngIf="!isEditing">{{ lote.areaMetrosCuadrados }} m²</h4>
+                                <input type="number" class="form-control form-control-sm mt-1"
+                                    [(ngModel)]="lote.areaMetrosCuadrados" *ngIf="isEditing">
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Payment Simulator (Hidden by default) -->
+                    <div id="quoteFormCard" *ngIf="showQuoteForm" class="card bg-white mb-4 border shadow-sm"
+                        style="border-radius: 15px; overflow: hidden;">
+                        <div class="card-header bg-primary text-white py-2">
+                            <h6 class="mb-0 font-weight-bold"><i class="fas fa-file-invoice-dollar mr-2"></i>Personaliza
+                                tu Cotización
+                            </h6>
+                        </div>
+                        <div class="card-body p-3">
+                            <div class="form-group mb-2 text-left">
+                                <label class="small font-weight-bold text-muted mb-1">Enganche Inicial</label>
+                                <div class="input-group input-group-sm">
+                                    <div class="input-group-prepend">
+                                        <span class="input-group-text">$</span>
+                                    </div>
+                                    <input type="number" class="form-control" [(ngModel)]="simEnganche"
+                                        (change)="calculatePayment()">
+                                </div>
+                            </div>
+
+                            <div class="form-row mb-2">
+                                <div class="col-12">
+                                    <label class="small font-weight-bold text-muted mb-1">Plazo Deseado</label>
+                                    <select class="form-control form-control-sm" [(ngModel)]="simPlazo">
+                                        <option [ngValue]="12">12 Meses</option>
+                                        <option [ngValue]="24">24 Meses</option>
+                                        <option [ngValue]="36">36 Meses</option>
+                                        <option [ngValue]="48">48 Meses</option>
+                                        <option [ngValue]="60">60 Meses</option>
+                                    </select>
+                                </div>
+                            </div>
+
+                            <hr class="my-2">
+                            <p class="small text-muted mb-2">
+                                <i class="fas fa-info-circle mr-1"></i> Te enviaremos una cotización detallada basada en
+                                esta propuesta a tu correo o WhatsApp.
+                            </p>
+
+                            <button class="btn btn-block btn-outline-primary btn-sm mt-3 rounded-pill font-weight-bold"
+                                (click)="requestQuoteWithSimulation()">
+                                <i class="fab fa-whatsapp mr-1"></i> Solicitar Cotización Detallada
+                            </button>
+                        </div>
+                    </div>
+
+
+
+                    <!-- Action Buttons -->
+                    <div class="d-flex justify-content-center mt-auto">
+                        <button (click)="goBack()" class="btn btn-sm btn-outline-secondary px-3 rounded-pill mr-2">
+                            <i class="fas fa-arrow-left mr-1"></i> Volver
+                        </button>
+                        <button (click)="revealQuoteForm()"
+                            class="btn btn-primary px-4 rounded-pill shadow-sm hover-lift"
+                            *ngIf="lote.estatus === 'DISPONIBLE' && !showQuoteForm">
+                            <i class="fas fa-calculator mr-1"></i> Cotizar
+                        </button>
+                        <button class="btn btn-secondary px-4 rounded-pill disabled"
+                            *ngIf="lote.estatus !== 'DISPONIBLE'" disabled>
+                            No Disponible
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div *ngIf="errorMessage" class="alert alert-danger mt-3">
+            {{ errorMessage }}
+            <button (click)="goBack()" class="btn btn-sm btn-outline-danger ml-2">Volver</button>
+        </div>
+
+        <!-- Custom Modal Overlay -->
+        <div class="modal-backdrop fade show" *ngIf="showModal"></div>
+        <div class="modal fade show" tabindex="-1" role="dialog" [style.display]="showModal ? 'block' : 'none'"
+            *ngIf="showModal">
+            <div class="modal-dialog" role="document">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title">Cotizar Lote</h5>
+                        <button type="button" class="close" (click)="closeQuoteModal()">
+                            <span aria-hidden="true">&times;</span>
+                        </button>
+                    </div>
+                    <div class="modal-body">
+                        <div *ngIf="quoteSuccess" class="alert alert-success">
+                            {{ quoteSuccess }}
+                        </div>
+                        <div *ngIf="quoteError" class="alert alert-danger">
+                            {{ quoteError }}
+                        </div>
+
+                        <form *ngIf="!quoteSuccess">
+                            <div class="form-group">
+                                <label>Nombre Completo</label>
+                                <input type="text" class="form-control" [(ngModel)]="quoteData.nombre" name="nombre"
+                                    required>
+                            </div>
+                            <div class="form-group">
+                                <label>Email</label>
+                                <input type="email" class="form-control" [(ngModel)]="quoteData.email" name="email"
+                                    required>
+                            </div>
+                            <div class="form-group">
+                                <label>Teléfono</label>
+                                <input type="tel" class="form-control" [(ngModel)]="quoteData.telefono" name="telefono"
+                                    required>
+                            </div>
+                            <div class="form-group">
+                                <label class="font-weight-bold">¿Qué te interesa?</label>
+                                <select class="form-control" [(ngModel)]="quoteData.interes" name="interes">
+                                    <option value="COTIZACION">Cotización de Lote</option>
+                                    <option value="VENDER">Vender lote</option>
+                                    <option value="REPRESENTANTE">Hablar con un representante</option>
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label>Mensaje (Opcional)</label>
+                                <textarea class="form-control" rows="3" [(ngModel)]="quoteData.mensaje"
+                                    name="mensaje"></textarea>
+                            </div>
+                        </form>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" (click)="closeQuoteModal()">Cerrar</button>
+                        <button type="button" class="btn btn-primary" (click)="submitQuote()"
+                            *ngIf="!quoteSuccess">Enviar
+                            Solicitud</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Gallery Modal -->
+    <div class="modal-backdrop fade show" *ngIf="showGalleryModal"></div>
+    <div class="modal show" tabindex="-1" role="dialog" [style.display]="showGalleryModal ? 'block' : 'none'"
+        *ngIf="showGalleryModal">
+        <div class="modal-dialog modal-xl modal-dialog-centered" role="document">
+            <div class="modal-content bg-dark border-0">
+                <div class="modal-header border-0">
+                    <button type="button" class="close text-white" (click)="closeGalleryModal()">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                <div class="modal-body text-center p-0 position-relative">
+                    <img [src]="getImageUrl(lote.galeriaImagenes[selectedImageIndex])" class="img-fluid gallery-modal-image"
+                        (click)="nextImage()">
+
+                    <button class="carousel-control-prev" type="button" (click)="prevImage()"
+                        *ngIf="lote.galeriaImagenes.length > 1">
+                        <span class="carousel-control-prev-icon" aria-hidden="true"
+                            style="background-color: rgba(0,0,0,0.5); border-radius: 50%;"></span>
+                        <span class="sr-only">Previous</span>
+                    </button>
+                    <button class="carousel-control-next" type="button" (click)="nextImage()"
+                        *ngIf="lote.galeriaImagenes.length > 1">
+                        <span class="carousel-control-next-icon" aria-hidden="true"
+                            style="background-color: rgba(0,0,0,0.5); border-radius: 50%;"></span>
+                        <span class="sr-only">Next</span>
+                    </button>
+                </div>
+                <div class="modal-footer border-0 justify-content-center text-white">
+                    {{ selectedImageIndex + 1 }} / {{ lote.galeriaImagenes.length }}
+                </div>
+            </div>
+        </div>
+    </div>

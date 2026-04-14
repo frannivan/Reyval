@@ -1,0 +1,425 @@
+<div class="modal fade" id="clientDossierModal" tabindex="-1" role="dialog" [ngClass]="{'show': show}"
+  [style.display]="show ? 'block' : 'none'">
+  <div class="modal-dialog modal-xl modal-dialog-scrollable" role="document">
+    <div class="modal-content border-0 shadow-lg">
+
+      <!-- Header -->
+      <div class="modal-header py-3">
+        <h5 class="modal-title font-weight-bold">
+            <i class="fa fa-folder-open text-muted mr-2"></i>Expediente del Cliente
+        </h5>
+        <button type="button" class="close" aria-label="Close" (click)="close()">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+
+      <div class="modal-body p-4 modal-body-lux" *ngIf="cliente">
+
+        <!-- Profile Banner -->
+        <div class="profile-banner d-flex align-items-center flex-wrap">
+          <div class="avatar-circle-dossier mr-4 mb-3 mb-md-0">
+            {{ getInitials(cliente.nombre, (cliente.apellidos || '')) }}
+          </div>
+          <div class="flex-grow-1">
+            <div class="d-flex justify-content-between align-items-start">
+                <h1 class="client-name-dossier mb-1">{{ cliente.nombre }} {{ cliente.apellidos }}</h1>
+                <span class="badge badge-light border rounded-pill px-3 py-1 small" style="margin-right: 180px; margin-top: -5px;">
+                  <i class="fa fa-calendar-alt mr-2 text-primary opacity-50"></i>Desde: {{ cliente.fechaRegistro | date:'mediumDate' }}
+                </span>
+            </div>
+            <div class="d-flex flex-wrap align-items-center mt-1">
+                <span class="client-email-dossier mr-4"><i class="fa fa-envelope mr-2 text-primary opacity-50"></i>{{ cliente.email }}</span>
+                <span class="text-muted mr-4">|</span>
+                <span class="font-weight-bold text-muted small"><i class="fa fa-phone mr-2 text-primary opacity-50"></i>{{ cliente.telefono }}</span>
+            </div>
+          </div>
+          <div class="ml-auto d-flex align-items-center mt-3 mt-lg-0 action-group-lux">
+            <button class="btn btn-light border-0 shadow-sm rounded-pill px-3 mr-2 font-weight-bold text-dark" (click)="printHistory()" title="Imprimir Expediente">
+              <i class="fa fa-print"></i>
+            </button>
+            <button class="btn btn-success shadow-sm rounded-pill px-4 mr-2 font-weight-bold" (click)="openPaymentForm()">
+              <i class="fa fa-plus-circle mr-2"></i>Registrar Pago
+            </button>
+            <button class="btn btn-premium shadow rounded-pill px-4 font-weight-bold" (click)="editClient()">
+              <i class="fa fa-user-edit mr-2"></i>Editar
+            </button>
+          </div>
+        </div>
+
+        <!-- Payment Form Overlay (Simplified Look) -->
+        <div *ngIf="showPaymentForm" class="payment-overlay p-4 rounded-xl mb-5 shadow-sm bg-dark border-primary" style="border: 2px solid var(--primary) !important;">
+          <div class="d-flex justify-content-between align-items-center mb-4">
+              <h5 class="mb-0 font-weight-bold text-primary"><i class="fa fa-receipt mr-2 text-primary"></i>Nuevo Registro de Pago</h5>
+              <button type="button" class="btn btn-sm btn-light border-circle" (click)="closePaymentForm()">&times;</button>
+          </div>
+
+          <div *ngIf="paymentSuccessMsg" class="alert alert-success border-0 shadow-sm">{{ paymentSuccessMsg }}</div>
+          <div *ngIf="paymentErrorMsg" class="alert alert-danger border-0 shadow-sm">{{ paymentErrorMsg }}</div>
+
+          <form (ngSubmit)="submitPayment()">
+            <!-- Form content preserved but with refined spacing -->
+            <div class="form-row">
+              <div class="col-md-6 mb-3">
+                <label class="small font-weight-bold text-muted text-uppercase letter-spacing-1">Contrato / Terreno</label>
+                <select class="form-control border-light shadow-sm" [(ngModel)]="paymentData.contratoId" name="contratoId" required>
+                  <option [ngValue]="null">Selecciona un terreno...</option>
+                  <option *ngFor="let c of contracts" [ngValue]="c.id">
+                    Lote {{ c.lote?.numeroLote }} - {{ c.lote?.fraccionamiento?.nombre }}
+                  </option>
+                </select>
+              </div>
+              <div class="col-md-6 mb-3">
+                <label class="small font-weight-bold text-muted text-uppercase letter-spacing-1">Monto del Pago</label>
+                <div class="input-group shadow-sm">
+                  <div class="input-group-prepend">
+                    <span class="input-group-text bg-dark border-right-0 text-success font-weight-bold">$</span>
+                  </div>
+                  <input type="number" class="form-control bg-dark border-left-0 font-weight-bold text-primary h5 mb-0" [(ngModel)]="paymentData.monto" name="monto" required min="1">
+                </div>
+              </div>
+            </div>
+            <div class="form-row">
+              <div class="col-md-4 mb-3">
+                <label class="small font-weight-bold text-muted text-uppercase letter-spacing-1">Concepto</label>
+                <input type="text" class="form-control border-light shadow-sm" [(ngModel)]="paymentData.concepto" name="concepto"
+                  placeholder="Ej. Mensualidad 05/24">
+              </div>
+              <div class="col-md-4 mb-3">
+                <label class="small font-weight-bold text-muted text-uppercase letter-spacing-1">Método</label>
+                <select class="form-control border-light shadow-sm" [(ngModel)]="paymentData.metodoPago" name="metodoPago">
+                  <option value="Efectivo">Efectivo</option>
+                  <option value="Transferencia">Transferencia</option>
+                  <option value="Depósito">Depósito</option>
+                  <option value="Cheque">Cheque</option>
+                  <option value="Otro">Otro</option>
+                </select>
+              </div>
+              <div class="col-md-4 mb-3">
+                <label class="small font-weight-bold text-muted text-uppercase letter-spacing-1">Referencia</label>
+                <input type="text" class="form-control border-light shadow-sm" [(ngModel)]="paymentData.referencia" name="referencia"
+                  placeholder="Folio o No. Operación">
+              </div>
+            </div>
+            <div class="form-row align-items-end mt-2">
+              <div class="col-md-8 mb-3">
+                <label class="small font-weight-bold text-muted text-uppercase letter-spacing-1">Comprobante (JPG/PNG/PDF)</label>
+                <div class="custom-file shadow-sm">
+                  <input type="file" class="custom-file-input" id="customFile" (change)="onFileSelected($event)">
+                  <label class="custom-file-label border-light" for="customFile">{{ selectedFileName || 'Elegir archivo...' }}</label>
+                </div>
+              </div>
+              <div class="col-md-4 mb-3">
+                  <button type="submit" class="btn btn-primary btn-block rounded-pill font-weight-bold py-2 shadow-lg" [disabled]="isSubmittingPayment">
+                    <span *ngIf="isSubmittingPayment" class="spinner-border spinner-border-sm mr-2"></span>
+                    <i class="fa fa-save mr-2" *ngIf="!isSubmittingPayment"></i>Confirmar Registro
+                  </button>
+              </div>
+            </div>
+          </form>
+        </div>
+
+        <!-- Stats Row (Professional & Clean) -->
+        <div class="row mb-5">
+          <div class="col-md-3">
+            <div class="dossier-stat-card stat-border-gold">
+              <div class="dossier-stat-value text-primary">{{ contracts.length }}</div>
+              <div class="dossier-stat-label"><i class="fa fa-map-marked-alt dossier-stat-icon text-warning"></i>Terrenos</div>
+            </div>
+          </div>
+          <div class="col-md-3">
+            <div class="dossier-stat-card stat-border-blue">
+              <div class="dossier-stat-value text-primary">{{ totalInvested | currency:'MXN' }}</div>
+              <div class="dossier-stat-label"><i class="fa fa-building dossier-stat-icon text-primary"></i>Inversión Total</div>
+            </div>
+          </div>
+          <div class="col-md-3">
+            <div class="dossier-stat-card stat-border-green">
+              <div class="dossier-stat-value text-success">{{ totalPaid | currency:'MXN' }}</div>
+              <div class="dossier-stat-label"><i class="fa fa-check-double dossier-stat-icon text-success"></i>Total Pagado</div>
+            </div>
+          </div>
+          <div class="col-md-3">
+            <div class="dossier-stat-card stat-border-orange">
+              <div class="dossier-stat-value" [style.color]="(totalInvested - totalPaid) > 1 ? '#f43f5e' : '#10b981'">
+                {{ (totalInvested - totalPaid) | currency:'MXN' }}
+              </div>
+              <div class="dossier-stat-label">
+                <i class="fa fa-hourglass-half dossier-stat-icon" [class.text-danger]="(totalInvested - totalPaid) > 1" [class.text-success]="(totalInvested - totalPaid) <= 1"></i>
+                Saldo Pendiente
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Progress Global -->
+        <div class="progress-container-lux mb-5">
+            <div class="d-flex justify-content-between align-items-center mb-3">
+                <h6 class="font-weight-bold text-muted mb-0 text-uppercase letter-spacing-1">Estado de la Inversión</h6>
+                <div class="text-right">
+                    <span class="h4 font-weight-800 text-primary mb-0">{{ getGlobalProgress() | number:'1.0-2' }}%</span>
+                    <div class="small text-muted font-weight-bold">COMPLETADO (VALIDADO)</div>
+                </div>
+            </div>
+            <div class="progress-lux-bar">
+              <div class="progress-lux-fill" [style.width.%]="getGlobalProgress()"></div>
+            </div>
+        </div>
+
+        <!-- Tabs -->
+        <ul class="nav nav-pills mb-4" id="dossierTabs" role="tablist" style="cursor: pointer; gap: 10px;">
+          <li class="nav-item">
+            <button class="nav-link border-0 px-4 py-2 font-weight-bold rounded-pill" 
+              [class.active]="activeTab === 'properties'" (click)="activeTab = 'properties'"
+              [style.background]="activeTab === 'properties' ? 'var(--primary-gradient)' : 'rgba(255,255,255,0.05)'"
+              [style.color]="activeTab === 'properties' ? 'var(--text-primary)' : 'var(--text-muted)'">
+              <i class="fa fa-home mr-2"></i> Propiedades ({{contracts.length}})
+            </button>
+          </li>
+          <li class="nav-item">
+            <button class="nav-link border-0 px-4 py-2 font-weight-bold rounded-pill" 
+              [class.active]="activeTab === 'payments'" (click)="activeTab = 'payments'"
+              [style.background]="activeTab === 'payments' ? 'var(--primary-gradient)' : 'rgba(255,255,255,0.05)'"
+              [style.color]="activeTab === 'payments' ? 'var(--text-primary)' : 'var(--text-muted)'">
+              <i class="fa fa-history mr-2"></i> Historial de Pagos
+            </button>
+          </li>
+        </ul>
+
+        <div class="tab-content mt-4" id="dossierTabContent">
+
+          <!-- Properties Tab -->
+          <div class="tab-pane fade" [class.show]="activeTab === 'properties'"
+            [class.active]="activeTab === 'properties'" *ngIf="activeTab === 'properties'">
+            <div class="row">
+              <div class="col-md-6 mb-4" *ngFor="let contract of contracts">
+                <div class="card h-100 border-0 shadow-sm overflow-hidden rounded-xl property-card-lux" style="background: var(--surface) !important;">
+                  <div class="row no-gutters h-100">
+                    <div class="col-md-5">
+                      <div class="position-relative h-100">
+                        <img [src]="contract.lote?.imagenUrl || 'assets/placeholder-land.jpg'" class="h-100 w-100"
+                            style="object-fit: cover; min-height: 180px;" alt="Lote">
+                        <div class="position-absolute" style="top: 12px; left: 12px;">
+                            <span class="badge-fracc shadow-sm">{{ contract.lote?.fraccionamiento?.nombre }}</span>
+                        </div>
+                      </div>
+                    </div>
+                    <div class="col-md-7">
+                      <div class="card-body p-4">
+                        <div class="d-flex justify-content-between align-items-start mb-3">
+                            <div>
+                                <h4 class="font-weight-800 mb-0 text-primary">Lote {{ contract.lote?.numeroLote }}</h4>
+                                <div class="small text-muted font-weight-bold">Manzana {{ contract.lote?.manzana }}</div>
+                            </div>
+                            <span class="badge badge-pill shadow-sm px-2 py-1" 
+                                [style.background]="contract.estatus === 'ACTIVO' ? '#dcfce7' : '#fef9c3'"
+                                [style.color]="contract.estatus === 'ACTIVO' ? '#166534' : '#854d0e'">
+                                {{ contract.estatus }}
+                            </span>
+                        </div>
+                        
+                        <div class="mb-3">
+                          <div class="text-muted opacity-50 x-small font-weight-bold text-uppercase letter-spacing-1">Valor Comercial</div>
+                          <div class="font-weight-800 text-primary h4 mb-0">{{ contract.montoTotal | currency:'MXN' }}</div>
+                        </div>
+
+                        <div class="d-flex align-items-center text-muted small font-weight-bold border-top pt-3">
+                            <span class="mr-auto"><i class="fa fa-calendar-check mr-2 text-primary opacity-50"></i>{{ contract.fechaContrato | date:'shortDate' }}</span>
+                            <span class="text-primary cursor-pointer hover-underline">Ver Detalles <i class="fa fa-external-link-alt ml-1"></i></span>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+              <div class="col-12 text-center py-5 text-muted" *ngIf="contracts.length === 0">
+                <i class="fa fa-home fa-3x mb-3 opacity-20"></i>
+                <p>No se encontraron propiedades vinculadas a este cliente.</p>
+              </div>
+            </div>
+          </div>
+
+          <!-- Payments Tab -->
+          <div class="tab-pane fade" [class.show]="activeTab === 'payments'" [class.active]="activeTab === 'payments'"
+            *ngIf="activeTab === 'payments'">
+            <div class="card border-0 shadow-sm rounded-xl overflow-hidden" style="background: var(--surface) !important;">
+              <div class="table-responsive">
+                <table class="table table-lux mb-0">
+                  <thead class="bg-light">
+                    <tr>
+                      <th class="border-0">Fecha</th>
+                      <th class="border-0">Terreno</th>
+                      <th class="border-0">Concepto</th>
+                      <th class="border-0">Estado</th>
+                      <th class="border-0 text-right">Monto</th>
+                      <th class="border-0 text-center">Ticket</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr *ngFor="let pago of allPayments" class="align-middle" [style.opacity]="pago.estatus === 'VALIDADO' ? '1' : '0.7'">
+                      <td class="font-weight-bold" [class.text-primary]="pago.estatus === 'VALIDADO'">{{ pago.fechaPago | date:'dd MMM, yyyy' }}</td>
+                      <td><span class="badge badge-light border rounded-pill px-3 py-1 text-primary" style="background: rgba(255,255,255,0.05) !important; border-color: var(--glass-border) !important;">Lote {{ pago.loteRef }}</span></td>
+                      <td>{{ pago.concepto }}</td>
+                      <td>
+                        <span class="badge rounded-pill px-2 py-1 small font-weight-bold"
+                          [style.background]="pago.estatus === 'VALIDADO' ? '#dcfce7' : (pago.estatus === 'PENDIENTE' ? '#fef9c3' : '#fee2e2')"
+                          [style.color]="pago.estatus === 'VALIDADO' ? '#166534' : (pago.estatus === 'PENDIENTE' ? '#854d0e' : '#991b1b')">
+                          <i class="fa" [class.fa-check-circle]="pago.estatus === 'VALIDADO'" [class.fa-clock]="pago.estatus === 'PENDIENTE'" [class.fa-times-circle]="pago.estatus === 'RECHAZADO'"></i>
+                          {{ pago.estatus || 'PENDIENTE' }}
+                        </span>
+                      </td>
+                      <td class="text-right font-weight-800" [class.text-success]="pago.estatus === 'VALIDADO'">{{ pago.monto | currency:'MXN' }}</td>
+                      <td class="text-center">
+                        <a *ngIf="pago.hasComprobante" [href]="'/api/pagos/' + pago.id + '/comprobante'" target="_blank"
+                          class="btn btn-sm btn-outline-primary border shadow-sm rounded-circle d-inline-flex align-items-center justify-content-center" 
+                          style="width: 32px; height: 32px;" title="Descargar Comprobante">
+                          <i class="fa fa-download"></i>
+                        </a>
+                        <span *ngIf="!pago.hasComprobante" class="text-muted x-small font-weight-bold">SIN ARCHIVO</span>
+                      </td>
+                    </tr>
+                    <tr *ngIf="allPayments.length === 0">
+                      <td colspan="6" class="text-center py-5 text-muted">
+                          <i class="fa fa-receipt fa-4x mb-3 opacity-10"></i>
+                          <p class="font-weight-bold">No hay registro de pagos en el sistema.</p>
+                      </td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+
+        </div>
+
+      </div>
+    </div>
+  </div>
+</div>
+<div class="modal-backdrop fade show" *ngIf="show"></div>
+
+<!-- Print Layout (Hidden unless printing) -->
+<!-- Print Layout (Detailed & Professional) -->
+<div id="print-section" class="d-none d-print-block bg-white text-dark p-4">
+  
+  <!-- Print Header -->
+  <div class="row border-bottom pb-4 mb-4">
+    <div class="col-6">
+        <h2 class="font-weight-800 text-primary mb-0"><i class="fa fa-building mr-2"></i>Reyval</h2>
+        <div class="text-muted small">Desarrollos Inmobiliarios</div>
+    </div>
+    <div class="col-6 text-right">
+        <h4 class="mb-0 text-muted">Estado de Cuenta</h4>
+        <div class="small">Generado: {{ today | date:'medium' }}</div>
+    </div>
+  </div>
+
+  <!-- Client & Property Info -->
+  <div class="row mb-5" *ngIf="contracts.length > 0">
+    <div class="col-6">
+        <h6 class="text-uppercase text-muted letter-spacing-1 font-weight-bold mb-3">Cliente</h6>
+        <h3 class="font-weight-bold mb-1">{{ cliente?.nombre }} {{ cliente?.apellidos }}</h3>
+        <div>Email: {{ cliente?.email }}</div>
+        <div>Tel: {{ cliente?.telefono }}</div>
+    </div>
+    <div class="col-6 text-right">
+        <h6 class="text-uppercase text-muted letter-spacing-1 font-weight-bold mb-3">Propiedad</h6>
+        <div class="h4 font-weight-bold mb-1">Lote {{ contracts[0].lote?.numeroLote }}</div>
+        <div>Manzana {{ contracts[0].lote?.manzana }}</div>
+        <div class="badge badge-light border">Fracc. {{ contracts[0].lote?.fraccionamiento?.nombre }}</div>
+    </div>
+  </div>
+
+  <!-- Financial Summary -->
+  <div class="row mb-5">
+    <div class="col-12">
+        <div class="card bg-light border-0">
+            <div class="card-body">
+                <div class="row text-center">
+                    <div class="col-4 border-right">
+                        <div class="text-muted small font-weight-bold">VALOR DEL CONTRATO</div>
+                        <h3 class="text-primary font-weight-800 mb-0">{{ totalInvested | currency:'MXN' }}</h3>
+                    </div>
+                    <div class="col-4 border-right">
+                        <div class="text-muted small font-weight-bold">TOTAL PAGADO</div>
+                        <h3 class="text-success font-weight-800 mb-0">{{ totalPaid | currency:'MXN' }}</h3>
+                    </div>
+                    <div class="col-4">
+                        <div class="text-muted small font-weight-bold">SALDO PENDIENTE</div>
+                        <h3 class="text-danger font-weight-800 mb-0">{{ (totalInvested - totalPaid) | currency:'MXN' }}</h3>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+  </div>
+
+  <!-- Payment History Table -->
+  <h5 class="font-weight-bold border-bottom pb-2 mb-3 mt-5">Historial de Pagos Realizados</h5>
+  <table class="table table-sm table-striped mb-5">
+    <thead class="thead-light">
+      <tr>
+        <th>Fecha</th>
+        <th>Folio/Ref</th>
+        <th>Concepto</th>
+        <th class="text-right">Monto</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr *ngFor="let pago of allPayments">
+        <td>{{ pago.fechaPago | date:'dd/MM/yyyy' }}</td>
+        <td>{{ pago.referencia || 'S/N' }}</td>
+        <td>{{ pago.concepto }}</td>
+        <td class="text-right font-weight-bold">{{ pago.monto | currency:'MXN' }}</td>
+      </tr>
+    </tbody>
+    <tfoot>
+        <tr class="bg-light">
+            <td colspan="3" class="text-right font-weight-bold">Total Pagado:</td>
+            <td class="text-right font-weight-bold">{{ totalPaid | currency:'MXN' }}</td>
+        </tr>
+    </tfoot>
+  </table>
+
+  <!-- Projected Amortization Table -->
+  <div *ngIf="amortizationTable.length > 0" class="break-before">
+      <h5 class="font-weight-bold border-bottom pb-2 mb-3 mt-5">Tabla de Amortización (Proyección)</h5>
+      <table class="table table-sm table-bordered">
+        <thead class="bg-dark text-white">
+          <tr>
+            <th class="text-center">#</th>
+            <th>Fecha Vencimiento</th>
+            <th class="text-right">Saldo Inicial</th>
+            <th class="text-right">Capital</th>
+            <th class="text-right">Interés</th>
+            <th class="text-right">Cuota Total</th>
+            <th class="text-right">Saldo Final</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr *ngFor="let row of amortizationTable">
+            <td class="text-center">{{ row.numero }}</td>
+            <td>{{ row.fecha | date:'dd/MM/yyyy' }}</td>
+            <td class="text-right text-muted">{{ row.saldoInicial | currency:'MXN' }}</td>
+            <td class="text-right">{{ row.capital | currency:'MXN' }}</td>
+            <td class="text-right text-danger">{{ row.interes | currency:'MXN' }}</td>
+            <td class="text-right font-weight-bold">{{ row.cuota | currency:'MXN' }}</td>
+            <td class="text-right font-weight-bold text-primary">{{ row.saldoFinal | currency:'MXN' }}</td>
+          </tr>
+        </tbody>
+      </table>
+      <div class="small text-muted text-center mt-3">
+          * Esta tabla es una proyección estimativa basada en el método francés. Los montos reales pueden variar según fechas de pago efectivo.
+      </div>
+  </div>
+
+  <!-- Footer signature area -->
+  <div class="row mt-5 pt-5">
+      <div class="col-6 text-center">
+          <div class="border-top w-75 mx-auto pt-2">Firma del Cliente</div>
+      </div>
+      <div class="col-6 text-center">
+          <div class="border-top w-75 mx-auto pt-2">Por Reyval Desarrollos</div>
+      </div>
+  </div>
+
+</div>

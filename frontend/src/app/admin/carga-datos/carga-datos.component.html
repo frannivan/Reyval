@@ -1,0 +1,165 @@
+<div class="container-fluid mt-4">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h2 class="text-primary font-weight-bold"><i class="fas fa-file-upload mr-2"></i>Carga Masiva de Datos</h2>
+    </div>
+
+    <div *ngIf="errorMsg" class="alert alert-danger shadow-sm">{{ errorMsg }}</div>
+
+    <div class="row">
+        <!-- Left Column: Add Files -->
+        <div class="col-md-5">
+            <div class="card shadow-sm border-0 mb-4 h-100">
+                <div class="card-header bg-white py-3">
+                    <h5 class="mb-0 text-dark"><i class="fas fa-plus-circle text-success mr-2"></i>Añadir Archivos</h5>
+                </div>
+                <div class="card-body">
+                    <p class="text-muted small mb-4">Seleccione el tipo de objeto y el archivo Excel correspondiente para añadirlo a la cola de carga.</p>
+                    
+                    <div class="form-group">
+                        <label class="small font-weight-bold">TIPO DE OBJETO</label>
+                        <select class="form-control" [(ngModel)]="selectedType">
+                            <option value="lotes">Inventario de Lotes</option>
+                            <option value="usuarios">Usuarios y Roles</option>
+                            <option value="fraccionamientos">Fraccionamientos</option>
+                            <option value="clientes">Directorio de Clientes</option>
+                            <option value="contratos">Contratos de Venta</option>
+                            <option value="pagos">Historial de Pagos</option>
+                        </select>
+                    </div>
+
+                    <div class="mt-4">
+                        <label class="small font-weight-bold">ARCHIVO EXCEL</label>
+                        <div class="custom-file mb-3">
+                            <input type="file" class="custom-file-input" id="bulkFileInput" (change)="addFile($event)" accept=".xlsx, .xls">
+                            <label class="custom-file-label" for="bulkFileInput">Seleccionar...</label>
+                        </div>
+                    </div>
+
+                    <div class="alert alert-info py-2 small border-0 mt-4">
+                        <i class="fas fa-info-circle mr-2"></i>
+                        Recuerde usar el formato de las plantillas oficiales.
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Right Column: Queue & Actions -->
+        <div class="col-md-7">
+            <div class="card shadow-sm border-0 mb-4">
+                <div class="card-header bg-white py-3 d-flex justify-content-between align-items-center">
+                    <h5 class="mb-0 text-dark"><i class="fas fa-list text-primary mr-2"></i>Archivos en Espera</h5>
+                    <div>
+                        <span class="badge badge-pill badge-primary mr-2">{{ filesToUpload.length }} archivos</span>
+                        <button *ngIf="filesToUpload.length > 0" class="btn btn-sm btn-outline-danger rounded-pill" (click)="filesToUpload = []">
+                            <i class="fas fa-undo mr-1"></i> Vaciar
+                        </button>
+                    </div>
+                </div>
+                <div class="card-body p-0">
+                    <div class="table-responsive" *ngIf="filesToUpload.length > 0">
+                        <table class="table mb-0 align-middle">
+                            <thead class="bg-light small font-weight-bold">
+                                <tr>
+                                    <th>TIPO</th>
+                                    <th>ARCHIVO</th>
+                                    <th class="text-right">ACCIONES</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr *ngFor="let item of filesToUpload; let i = index">
+                                    <td><span class="badge badge-secondary">{{ item.type | uppercase }}</span></td>
+                                    <td class="small">{{ item.file.name }}</td>
+                                    <td class="text-right">
+                                        <button class="btn btn-sm btn-link text-danger" (click)="removeFile(i)">
+                                            <i class="fas fa-trash"></i> Quitar
+                                        </button>
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+
+                    <div *ngIf="filesToUpload.length === 0" class="text-center py-5 text-muted">
+                        <i class="fas fa-inbox fa-3x mb-3"></i>
+                        <p>No hay archivos en la cola de carga.</p>
+                    </div>
+
+                    <div class="p-4" *ngIf="filesToUpload.length > 0">
+                        <button class="btn btn-primary btn-lg btn-block rounded-pill shadow" (click)="uploadFiles()" [disabled]="isUploading">
+                            <i class="fas fa-cloud-upload-alt mr-2"></i>
+                            {{ isUploading ? 'Procesando Cargas...' : 'Cargar Todo' }}
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Download Templates -->
+            <div class="card shadow-sm border-0">
+                <div class="card-header bg-white py-3 d-flex justify-content-between align-items-center">
+                    <h5 class="mb-0 text-dark"><i class="fas fa-download text-muted mr-2"></i>Descargar Plantillas</h5>
+                    <button class="btn btn-sm btn-success rounded-pill px-3 shadow-sm" (click)="downloadMasterTemplate()">
+                        <i class="fas fa-file-excel mr-1"></i> Plantilla Maestra (Todo junto)
+                    </button>
+                </div>
+                <div class="card-body">
+                    <div class="btn-group w-100 flex-wrap">
+                        <button class="btn btn-light border" (click)="downloadTemplate('lotes')">
+                            Lotes
+                        </button>
+                        <button class="btn btn-light border" (click)="downloadTemplate('usuarios')">
+                            Usuarios
+                        </button>
+                        <button class="btn btn-light border" (click)="downloadTemplate('fraccionamientos')">
+                            Fracc.
+                        </button>
+                        <button class="btn btn-light border" (click)="downloadTemplate('clientes')">
+                            Clientes
+                        </button>
+                        <button class="btn btn-light border" (click)="downloadTemplate('contratos')">
+                            Contratos
+                        </button>
+                        <button class="btn btn-light border" (click)="downloadTemplate('pagos')">
+                            Pagos
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Results -->
+    <div class="mt-4" *ngIf="results.length > 0">
+        <div class="card border-0 shadow-sm bg-success text-white">
+            <div class="card-header border-0 bg-transparent">
+                <h5 class="mb-0 font-weight-bold"><i class="fas fa-check-circle mr-2"></i>Resultados del Procesamiento</h5>
+            </div>
+            <div class="card-body">
+                <ul class="mb-0 list-unstyled">
+                    <li *ngFor="let res of results" class="mb-2">
+                        <i class="fas fa-chevron-right mr-2 small"></i> {{ res }}
+                    </li>
+                </ul>
+            </div>
+        </div>
+
+        <!-- Instructions -->
+        <div class="card border-info mt-4">
+            <div class="card-header bg-info text-white">
+                <h6 class="mb-0"><i class="fas fa-info-circle me-2"></i>Instrucciones</h6>
+            </div>
+            <div class="card-body">
+                <ol>
+                    <li>Selecciona el tipo de objeto que deseas cargar</li>
+                    <li>Descarga la plantilla Excel correspondiente</li>
+                    <li>Llena la plantilla con los datos (respeta los formatos indicados en la fila 2)</li>
+                    <li>Sube el archivo completado usando el botón "Cargar Datos"</li>
+                    <li>Revisa los resultados y corrige cualquier error si es necesario</li>
+                </ol>
+                <div class="alert alert-warning mb-0">
+                    <strong>Nota:</strong> Los datos duplicados o con errores de formato serán rechazados. 
+                    Asegúrate de revisar los mensajes de error para corregir tu archivo.
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
