@@ -13,7 +13,8 @@ const processes = {
     frontend: { child: null, state: 'stopped', logs: [] },
     backend: { child: null, state: 'stopped', logs: [] },
     git_push: { child: null, state: 'stopped', logs: [] },
-    server_deploy: { child: null, state: 'stopped', logs: [] }
+    server_deploy: { child: null, state: 'stopped', logs: [] },
+    db_sync: { child: null, state: 'stopped', logs: [] }
 };
 
 const clients = new Set();
@@ -104,7 +105,8 @@ const server = http.createServer((req, res) => {
             frontend: { state: processes.frontend.state },
             backend: { state: processes.backend.state },
             git_push: { state: processes.git_push.state },
-            server_deploy: { state: processes.server_deploy.state }
+            server_deploy: { state: processes.server_deploy.state },
+            db_sync: { state: processes.db_sync.state }
         })}\n\n`);
         req.on('close', () => clients.delete(res));
         return;
@@ -124,6 +126,10 @@ const server = http.createServer((req, res) => {
         else if (app === 'server_deploy') {
             const deployCmd = `ssh -i ${SSH_KEY} -o StrictHostKeyChecking=no ${REMOTE} "cd /home/ubuntu/Reyval && git pull && sudo bash deploy.sh"`;
             runCommand('server_deploy', deployCmd, [], '.');
+        }
+        else if (app === 'db_sync') {
+            const syncCmd = `scp -i ${SSH_KEY} -o StrictHostKeyChecking=no backend-api/prisma/dev.db ${REMOTE}:/tmp/dev.db && ssh -i ${SSH_KEY} -o StrictHostKeyChecking=no ${REMOTE} "sudo mv /tmp/dev.db /home/ubuntu/Reyval/backend-api/prisma/dev.db && sudo chown ubuntu:ubuntu /home/ubuntu/Reyval/backend-api/prisma/dev.db"`;
+            runCommand('db_sync', syncCmd, [], '.');
         }
         res.end('OK');
         return;

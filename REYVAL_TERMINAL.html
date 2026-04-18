@@ -218,6 +218,19 @@
             </div>
         </div>
         <div class="terminal-panel"><div class="terminal-output" id="logs-server_deploy"></div></div>
+    </div>
+
+    <!-- DATABASE MIRRORING -->
+    <div class="card" id="card-db_sync">
+        <div class="card-header" onclick="toggleCard('card-db_sync')">
+            <div class="app-title"><div class="led" id="led-db_sync"></div> <i class="fa-solid fa-database"></i> Database Mirroring (Mac ↔ Ubuntu)</div>
+            <div class="controls" onclick="event.stopPropagation()">
+                <button class="btn btn-run" style="background:rgba(255,255,255,0.05); color:var(--text-main); border-color: var(--border);" onclick="if(confirm('ATENCIÓN: Esto sobrescribirá los datos del servidor con tus datos locales. ¿Continuar?')) sendCommand('run', 'db_sync')" id="run-db_sync"><i class="fa-solid fa-sync"></i> SYNC LOCAL DB TO CLOUD</button>
+                <button class="btn btn-stop" onclick="sendCommand('stop', 'db_sync')" id="stop-db_sync" disabled><i class="fa-solid fa-stop"></i> STOP</button>
+                <i class="fa-solid fa-chevron-down" style="margin-left: 2rem; color: var(--text-muted)"></i>
+            </div>
+        </div>
+        <div class="terminal-panel"><div class="terminal-output" id="logs-db_sync"></div></div>
     </div>>
 </div>
 

@@ -6,8 +6,8 @@ echo "📦 Configurando el Backend..."
 cd backend-api
 npm install
 npx prisma generate
-npx prisma db push --accept-data-loss
-node prisma/seed.js
+# npx prisma db push --accept-data-loss
+# node prisma/seed.js
 npm run build
 
 if [ $? -eq 0 ]; then
