@@ -375,11 +375,10 @@
 
     function toggleCard(id) { document.getElementById(id).classList.toggle('expanded'); }
 
-    function sendCommand(path, app, cmdType) {
+    function sendCommand(path, app, msgOverride) {
         let url = `${BRIDGE_URL}/${path}?app=${app}`;
-        if(cmdType) url += `&cmd=${cmdType}`;
-        if(app === 'git' && cmdType === 'push') {
-            const msg = document.getElementById('git-msg').value;
+        if(app === 'git_push') {
+            const msg = msgOverride || document.getElementById('deploy-msg').value;
             if(msg) url += `&msg=${encodeURIComponent(msg)}`;
         }
         fetch(url).catch(() => showBridgeWarning());
