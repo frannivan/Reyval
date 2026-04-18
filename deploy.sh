@@ -1,28 +1,34 @@
 #!/bin/bash
-echo "🚀 Iniciando despliegue de Reyval..."
+echo "🚀 Iniciando despliegue de Reyval (NestJS + Angular)..."
 
-# 1. Actualizar repositorio (Esto ya se hace en el comando de una línea, pero por seguridad)
-# git pull origin branch-v1
-
-# 2. Construir el Backend
-echo "📦 Construyendo el JAR del backend..."
-cd backend
-mvn clean package -DskipTests
+# 1. Construir el Backend (NestJS)
+echo "📦 Configurando el Backend..."
+cd backend-api
+npm install
+npx prisma generate
+npm run build
 
 if [ $? -eq 0 ]; then
-    echo "✅ Backend construido con éxito."
+    echo "✅ Backend (NestJS) listo."
 else
     echo "❌ Error al construir el backend. Abortando."
     exit 1
 fi
 
-# 3. Reiniciar el servicio
-echo "🔄 Reiniciando el servicio reyval.service..."
-sudo systemctl restart reyval.service
+# 2. Reiniciar el servicio con PM2
+echo "🔄 Reiniciando Reyval Backend en PM2..."
+pm2 restart "reyval-backend" || pm2 start "npm run start" --name "reyval-backend"
+
+# 3. Construir el Frontend (Angular)
+echo "🎨 Compilando el Frontend (Angular)..."
+cd ../frontend
+npm install
+npm run build
 
 if [ $? -eq 0 ]; then
-    echo "🚀 Despliegue completado con éxito."
+    echo "✅ Frontend compilado con éxito."
+    echo "🚀 Despliegue de Reyval completado. Accede por tu nueva URL."
 else
-    echo "❌ Error al reiniciar el servicio. Verifica con: sudo journalctl -u reyval.service"
+    echo "❌ Error al compilar el frontend."
     exit 1
 fi

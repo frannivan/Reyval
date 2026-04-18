@@ -207,6 +207,20 @@
         </div>
         <div class="terminal-panel"><div class="terminal-output" id="logs-git"></div></div>
     </div>
+
+    <!-- CLOUD OPS -->
+    <div class="card" id="card-cloud">
+        <div class="card-header" onclick="toggleCard('card-cloud')">
+            <div class="app-title"><div class="led" id="led-cloud"></div> <i class="fa-solid fa-cloud-arrow-up"></i> Cloud & Infrastructure</div>
+            <div class="controls" onclick="event.stopPropagation()">
+                <button class="btn btn-run" onclick="sendCommand('run', 'cloud', 'build-front')">BUILD FRONT</button>
+                <button class="btn btn-run" onclick="sendCommand('run', 'cloud', 'build-back')">BUILD BACK</button>
+                <button class="btn btn-stop" style="background:var(--primary); color:#fff;" onclick="sendCommand('run', 'cloud', 'deploy-back')"><i class="fa-solid fa-rocket"></i> DEPLOY</button>
+                <i class="fa-solid fa-chevron-down" style="margin-left: 2rem; color: var(--text-muted)"></i>
+            </div>
+        </div>
+        <div class="terminal-panel"><div class="terminal-output" id="logs-cloud"></div></div>
+    </div>
 </div>
 
 <!-- ARCHITECTURE LAB -->
@@ -314,6 +328,36 @@
                 <p style="font-size: 0.85rem; margin-top: 1rem;">Acceso restringido vía SSH Key:<br><code>AbTech/ssh-key-2026-01-09.key</code></p>
                 <p style="font-size: 0.85rem; margin-top: 1rem;">IP Productiva:<br><code>143.47.101.209</code></p>
             </div>
+        </div>
+    </div>
+</div>
+
+<!-- OPERATIONAL MANUAL -->
+<div id="manual" class="container">
+    <div class="lab-hero">
+        <h2 style="font-size: 3rem; font-weight: 800; margin-bottom: 1.5rem;"><i class="fa-solid fa-book-morpheus"></i> Operational Manual</h2>
+        <p style="color: var(--text-muted); font-size: 1.2rem;">Protocolos de Emergencia y Gestión de Infraestructura</p>
+
+        <div class="matrix-container" style="grid-template-columns: 1fr 1fr;">
+            <div class="matrix-box">
+                <h4><i class="fa-solid fa-triangle-exclamation" style="color: var(--danger);"></i> Gestión de RAM (Regla de Oro)</h4>
+                <p style="font-size: 0.9rem; margin-bottom: 1rem;">El servidor de Oracle Cloud tiene recursos limitados (~1GB RAM). El exceso de procesos Java puede saturar el sistema.</p>
+                <div class="gateway-cmd" style="color: var(--danger); border-color: var(--danger);">Máximo 2 Apps activas a la vez.</div>
+            </div>
+            <div class="matrix-box">
+                <h4><i class="fa-solid fa-keyboard"></i> Comandos SSH de Emergencia</h4>
+                <div class="matrix-item"><b>Reiniciar Nginx:</b><span>sudo systemctl restart nginx</span></div>
+                <div class="matrix-item"><b>Ver Logs del Sistema:</b><span>journalctl -u reyval-backend --since "1 hour ago"</span></div>
+            </div>
+        </div>
+
+        <div class="infra-card" style="margin-top: 3rem;">
+            <h4>Protocolo de Despliegue (Build -> Transport -> Restart)</h4>
+            <ol style="margin: 1.5rem 0 1.5rem 2rem; color: var(--text-muted); line-height: 2;">
+                <li>Generar el paquete atómico en local usando el botón <b>BUILD BACKEND</b>.</li>
+                <li>Verificar que el log termine con "Build Success".</li>
+                <li>Presionar <b>DEPLOY</b> para subir vía túnel SCP y reiniciar el servicio Systemd remoto.</li>
+            </ol>
         </div>
     </div>
 </div>
