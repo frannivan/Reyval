@@ -1,4 +1,5 @@
 const { PrismaClient } = require('@prisma/client');
+const bcrypt = require('bcryptjs');
 const prisma = new PrismaClient();
 
 async function main() {
@@ -10,20 +11,36 @@ async function main() {
     create: { name: 'ROLE_ADMIN' },
   });
 
+  const hashedAdminPassword = bcrypt.hashSync('admin123', 10);
+
   await prisma.user.upsert({
     where: { username: 'admin' },
-    update: {},
+    update: {
+      password: hashedAdminPassword
+    },
     create: {
       id: 'usr-1',
       username: 'admin',
       email: 'admin@reyval.mx',
       emailVerified: true,
       roleId: adminRole.id,
+      password: hashedAdminPassword
     },
   });
 
-  const fracc = await prisma.fraccionamiento.create({
-    data: {
+  // Limpiar datos antiguos para evitar basura acumulada
+  await prisma.lote.deleteMany({});
+  await prisma.fraccionamiento.deleteMany({});
+
+  const fracc = await prisma.fraccionamiento.upsert({
+    where: { id: 1 },
+    update: {
+      nombre: 'Valle Dorado',
+      ubicacion: 'Norte',
+      descripcion: 'Fraccionamiento premium',
+    },
+    create: {
+      id: 1,
       nombre: 'Valle Dorado',
       ubicacion: 'Norte',
       descripcion: 'Fraccionamiento premium',
@@ -33,6 +50,7 @@ async function main() {
   await prisma.lote.createMany({
     data: [
       {
+        id: 1,
         numeroLote: 'L-01',
         manzana: 'A',
         precioTotal: 150000.00,
@@ -41,6 +59,7 @@ async function main() {
         fraccionamientoId: fracc.id,
       },
       {
+        id: 2,
         numeroLote: 'L-02',
         manzana: 'A',
         precioTotal: 155000.00,
@@ -49,6 +68,7 @@ async function main() {
         fraccionamientoId: fracc.id,
       },
       {
+        id: 3,
         numeroLote: 'L-03',
         manzana: 'B',
         precioTotal: 170000.00,
@@ -57,6 +77,7 @@ async function main() {
         fraccionamientoId: fracc.id,
       },
       {
+        id: 4,
         numeroLote: 'L-04',
         manzana: 'B',
         precioTotal: 250000.00,

@@ -12,8 +12,8 @@ const PORT = 3030;
 const processes = {
     frontend: { child: null, state: 'stopped', logs: [] },
     backend: { child: null, state: 'stopped', logs: [] },
-    git: { child: null, state: 'stopped', logs: [] },
-    cloud: { child: null, state: 'stopped', logs: [] }
+    git_push: { child: null, state: 'stopped', logs: [] },
+    server_deploy: { child: null, state: 'stopped', logs: [] }
 };
 
 const clients = new Set();
@@ -103,8 +103,8 @@ const server = http.createServer((req, res) => {
         res.write(`event: init\ndata: ${JSON.stringify({
             frontend: { state: processes.frontend.state },
             backend: { state: processes.backend.state },
-            git: { state: processes.git.state },
-            cloud: { state: processes.cloud.state }
+            git_push: { state: processes.git_push.state },
+            server_deploy: { state: processes.server_deploy.state }
         })}\n\n`);
         req.on('close', () => clients.delete(res));
         return;
@@ -117,21 +117,13 @@ const server = http.createServer((req, res) => {
     if (url.pathname === '/run') {
         if (app === 'frontend') runCommand('frontend', 'npm', ['start'], 'frontend');
         else if (app === 'backend') runCommand('backend', 'npm', ['run', 'dev'], 'backend-api');
-        else if (app === 'git') {
-            if (cmdType === 'status') runCommand('git', 'git', ['status'], '.');
-            if (cmdType === 'pull') runCommand('git', 'git', ['pull', 'origin', 'master'], '.');
-            if (cmdType === 'push') {
-                const safeMsg = msg.replace(/"/g, '\\"');
-                runCommand('git', `git add . && git commit -m "${safeMsg}" && git push origin master`, [], '.');
-            }
+        else if (app === 'git_push') {
+            const safeMsg = msg.replace(/"/g, '\\"');
+            runCommand('git_push', `git add . && git commit -m "${safeMsg}" && git push origin main`, [], '.');
         }
-        else if (app === 'cloud') {
-            if (cmdType === 'build-back') runCommand('cloud', 'npm', ['run', 'build'], 'backend-api');
-            if (cmdType === 'build-front') runCommand('cloud', 'npm', ['run', 'build'], 'frontend');
-            if (cmdType === 'deploy-back') {
-                const buildCmd = `scp -i ${SSH_KEY} -r backend-api/dist/* ${REMOTE}:/tmp/back-dist && ssh -i ${SSH_KEY} ${REMOTE} 'sudo rm -rf /var/www/reyval/backend/* && sudo cp -r /tmp/back-dist/* /var/www/reyval/backend/ && sudo systemctl restart reyval-backend'`;
-                runCommand('cloud', buildCmd, [], '.');
-            }
+        else if (app === 'server_deploy') {
+            const deployCmd = `ssh -i ${SSH_KEY} -o StrictHostKeyChecking=no ${REMOTE} "cd /home/ubuntu/Reyval && git pull && sudo bash deploy.sh"`;
+            runCommand('server_deploy', deployCmd, [], '.');
         }
         res.end('OK');
         return;
