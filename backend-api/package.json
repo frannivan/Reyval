@@ -38,6 +38,7 @@
     "uuid": "^13.0.0"
   },
   "devDependencies": {
+    "@nestjs/cli": "^11.0.0",
     "@nestjs/schematics": "^11.0.10",
     "@nestjs/testing": "^11.1.18",
     "@types/bcryptjs": "^2.4.6",
@@ -47,7 +48,6 @@
     "@types/passport-jwt": "^4.0.1",
     "@types/pdfkit": "^0.17.5",
     "prisma": "^5.22.0",
-    "registrar": "^0.0.2",
     "ts-node": "^10.9.2",
     "typescript": "^5.4.5"
   }

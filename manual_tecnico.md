@@ -71,7 +71,13 @@ server {
 
 ---
 
+
 ## FASE 4: Seguridad SSL (DuckDNS)
+
+Entras a DuckDNS.org.
+Escribes reyval y le das a "Add domain".
+Le pones la IP 143.47.101.209. 👉 A partir de ahí, ya podrás usar https://reyval.duckdns.org y el sistema quedará 100% independiente.
+
 ```bash
 sudo certbot --nginx -d reyval.duckdns.org
 ```
